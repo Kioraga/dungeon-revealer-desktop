@@ -93,6 +93,10 @@ const AuthenticatedAppShellRenderer: React.FC<{
   const [diceRollNotesState, setDiceRollNotesState] =
     useShowDiceRollNotesState();
 
+  // DM window view mode: "dm" (editor) or "player" (mirror). The player view
+  // hides the DM chrome (search + log aside).
+  const [viewMode, setViewMode] = React.useState<"dm" | "player">("dm");
+
   const toggleShowDiceRollNotes = React.useCallback(() => {
     setDiceRollNotesState((state) => (state === "show" ? "hidden" : "show"));
   }, []);
@@ -147,68 +151,84 @@ const AuthenticatedAppShellRenderer: React.FC<{
   }
 
   return (
-    <ChatPositionContext.Provider value={chatPositionContextValue}>
-      <NoteWindowContextProvider>
-        <Container>
-          <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
-            {children}
-          </div>
-          <SplashShareImage />
-          {isMapOnly === false ? (
-            <React.Fragment>
-              <animated.div
-                style={{
-                  display: "flex",
-                  position: "absolute",
-                  right: 0,
-                  height: "100%",
-                  transform: chatPosition.x.to(
-                    (value) => `translateX(${value}px)`
-                  ),
-                  pointerEvents: "none",
-                }}
+    <ViewModeContext.Provider value={viewMode}>
+      <SetViewModeContext.Provider value={setViewMode}>
+        <ChatPositionContext.Provider value={chatPositionContextValue}>
+          <NoteWindowContextProvider>
+            <Container>
+              <div
+                style={{ flex: 1, position: "relative", overflow: "hidden" }}
               >
-                <IconContainer>
-                  <IconButton
-                    onClick={() => setShowSearch(true)}
-                    style={{ marginRight: 8, pointerEvents: "all" }}
-                  >
-                    <Icon.Search boxSize="20px" />
-                  </IconButton>
-                  <ChatToggleButton
-                    hasUnreadMessages={hasUnreadMessages}
-                    onClick={() => {
-                      resetUnreadMessages();
-                      setShowChatState((showChat) =>
-                        showChat === "show" ? "hidden" : "show"
-                      );
+                {children}
+              </div>
+              <SplashShareImage />
+              {isMapOnly === false && viewMode !== "player" ? (
+                <React.Fragment>
+                  <animated.div
+                    style={{
+                      display: "flex",
+                      position: "absolute",
+                      right: 0,
+                      height: "100%",
+                      transform: chatPosition.x.to(
+                        (value) => `translateX(${value}px)`
+                      ),
+                      pointerEvents: "none",
                     }}
-                  />
-                </IconContainer>
-                <Aside width={chatWidth}>
-                  <Chat toggleShowDiceRollNotes={toggleShowDiceRollNotes} />
-                </Aside>
-              </animated.div>
-            </React.Fragment>
-          ) : null}
-        </Container>
-        {isMapOnly === false ? (
-          <React.Fragment>
-            <TokenInfoAside />
-            {showSearch ? (
-              <NoteSearch close={() => setShowSearch(false)} />
+                  >
+                    <IconContainer>
+                      <IconButton
+                        onClick={() => setShowSearch(true)}
+                        style={{ marginRight: 8, pointerEvents: "all" }}
+                      >
+                        <Icon.Search boxSize="20px" />
+                      </IconButton>
+                      <ChatToggleButton
+                        hasUnreadMessages={hasUnreadMessages}
+                        onClick={() => {
+                          resetUnreadMessages();
+                          setShowChatState((showChat) =>
+                            showChat === "show" ? "hidden" : "show"
+                          );
+                        }}
+                      />
+                    </IconContainer>
+                    <Aside width={chatWidth}>
+                      <Chat toggleShowDiceRollNotes={toggleShowDiceRollNotes} />
+                    </Aside>
+                  </animated.div>
+                </React.Fragment>
+              ) : null}
+            </Container>
+            {isMapOnly === false && viewMode !== "player" ? (
+              <React.Fragment>
+                <TokenInfoAside />
+                {showSearch ? (
+                  <NoteSearch close={() => setShowSearch(false)} />
+                ) : null}
+                {diceRollNotesState === "show" ? (
+                  <React.Suspense fallback={null}>
+                    <DiceRollNotes close={toggleShowDiceRollNotes} />
+                  </React.Suspense>
+                ) : null}
+              </React.Fragment>
             ) : null}
-            {diceRollNotesState === "show" ? (
-              <React.Suspense fallback={null}>
-                <DiceRollNotes close={toggleShowDiceRollNotes} />
-              </React.Suspense>
-            ) : null}
-          </React.Fragment>
-        ) : null}
-      </NoteWindowContextProvider>
-    </ChatPositionContext.Provider>
+          </NoteWindowContextProvider>
+        </ChatPositionContext.Provider>
+      </SetViewModeContext.Provider>
+    </ViewModeContext.Provider>
   );
 };
+
+export const ViewModeContext = React.createContext<"dm" | "player">("dm");
+export const SetViewModeContext = React.createContext<
+  React.Dispatch<React.SetStateAction<"dm" | "player">>
+>(() => {});
+
+export const useViewMode = (): [
+  "dm" | "player",
+  React.Dispatch<React.SetStateAction<"dm" | "player">>
+] => [React.useContext(ViewModeContext), React.useContext(SetViewModeContext)];
 
 export const ChatPositionContext = React.createContext<{
   width: number;
