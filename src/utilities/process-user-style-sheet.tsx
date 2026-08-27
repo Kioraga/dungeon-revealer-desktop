@@ -121,7 +121,7 @@ type ProcessUserStyleSheetOptions = {
 /**
  * Process a user-defined StyleSheet.
  *
- * Prefixes all rules to be scoped to the provided scope selector in order to avoid user-styles to affect any other styles within dungeon-revealer.
+ * Prefixes all rules to be scoped to the provided scope selector in order to avoid user-styles to affect any other styles within dungeon-revealer-desktop.
  */
 export const processUserStyleSheet =
   (opts: ProcessUserStyleSheetOptions) =>

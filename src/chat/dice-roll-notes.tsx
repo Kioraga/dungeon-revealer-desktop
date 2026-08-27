@@ -61,7 +61,7 @@ You can also simply click the dice roll text above. It is a macro that will trig
 ## Macro Rolling
 
 Macros can contain text and dice rolls. Click the edit button on the top right to learn how to write your own macros.
-You can simply edit this text and add macros that suit your game. They will be stored so you can access them every time you are using dungeon-revealer!
+You can simply edit this text and add macros that suit your game. They will be stored so you can access them every time you are using dungeon-revealer-desktop!
 
 Here are some more examples:
 

@@ -1,28 +1,18 @@
 {
-  "name": "dungeon-revealer",
+  "name": "dungeon-revealer-desktop",
   "version": "1.17.1",
-  "description": "dungeon-revealer ================",
-  "bugs": {
-    "url": "https://github.com/dungeon-revealer/dungeon-revealer/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/dungeon-revealer/dungeon-revealer.git"
-  },
+  "description": "Local desktop app for revealing game maps to players on a projector or external screen.",
+  "main": "electron/main.cjs",
   "license": "ISC",
   "author": "apclary",
-  "main": "app.js",
-  "bin": "bin/dungeon-revealer",
   "scripts": {
     "prebuild": "node scripts/prebuild.js",
     "build:frontend": "node scripts/copy-monaco-editor-files.js && npm run relay-compiler && vite build --base=./",
     "build:backend": "tsc --project server/tsconfig.json",
     "build": "npm run build:frontend && npm run build:backend",
-    "compile": "npx caxa -i . --exclude '*' '.*' '!server-build' '!build' '!package.json' '!package-lock.json' '!node_modules' -o bin/dungeon-revealer-bin -- \"{{caxa}}/node_modules/.bin/node\" \"{{caxa}}/server-build/index.js\" \"--caxa\"",
-    "compile:win": "npx caxa -i . --exclude '*' '.*' '!server-build' '!build' '!package.json' '!package-lock.json' '!node_modules' -o bin/dungeon-revealer-bin.exe -- \"{{caxa}}/node_modules/.bin/node\" \"{{caxa}}/server-build/index.js\" \"--caxa\"",
-    "eslint": "eslint --ignore-path .gitignore --max-warnings 0 \"**/*.js\" \"bin/dungeon-revealer\"",
+    "eslint": "eslint --ignore-path .gitignore --max-warnings 0 \"**/*.js\"",
+    "start:desktop": "npm run build && electron .",
     "postinstall": "patch-package",
-    "start": "node ./bin/dungeon-revealer",
     "test": "jest --passWithNoTests",
     "start:frontend:dev": "vite",
     "start:server:dev": "ts-node-dev --project server/tsconfig.json --no-deps server/index.ts",
@@ -108,8 +98,8 @@
     "babel-jest": "27.3.1",
     "babel-plugin-relay": "10.1.3",
     "body-scroll-lock": "3.1.5",
-    "caxa": "2.0.0",
     "cross-env": "7.0.3",
+    "electron": "^16.0.0",
     "domhandler": "4.2.2",
     "eslint": "7.32.0",
     "eslint-config-prettier": "8.3.0",
@@ -154,5 +144,11 @@
     "vite": "2.7.3",
     "vite-plugin-babel-macros": "1.0.5",
     "zustand": "3.5.13"
+  },
+  "allowScripts": {
+    "sqlite3@5.0.10": true,
+    "esbuild@0.13.15": true,
+    "core-js-pure@3.13.0": true,
+    "electron@16.2.8": true
   }
 }
