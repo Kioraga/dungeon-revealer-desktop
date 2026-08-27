@@ -379,6 +379,21 @@ const Content = ({
   ) as unknown as mapView_MapFragment$key | null;
   const mirrorMapId = dmAreaResponse.data?.map?.id ?? null;
 
+  // Switching maps while sharing must re-point the player window at the new
+  // map (the server's `currentMapId`), same effect as Stop+Start Sharing.
+  React.useEffect(() => {
+    if (!isSharing || mirrorMapId === null) {
+      return;
+    }
+    localFetch("/active-map", {
+      method: "POST",
+      body: JSON.stringify({ mapId: mirrorMapId }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  }, [isSharing, mirrorMapId, localFetch]);
+
   return (
     <FetchContext.Provider value={localFetch}>
       <ViewModeTab>
