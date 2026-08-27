@@ -3,9 +3,12 @@ name: Release build
 on:
   release:
     types: [created]
+  workflow_dispatch:
 
 jobs:
   build:
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
@@ -14,20 +17,44 @@ jobs:
             platform: linux
           - os: windows-latest
             platform: win32
-          - os: macos-latest
-            platform: darwin
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 16
           cache: npm
       - run: npm ci
       - run: npm run build
-      - name: Package app
+      - name: Package AppImage (linux)
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libfuse2 || sudo apt-get install -y libfuse2t64
+          npx --yes electron-builder@23.6.0 --linux AppImage --x64 --publish never
+      - name: Package app (windows)
+        if: matrix.platform != 'linux'
+        shell: bash
         run: npx --yes electron-packager@15.5.1 . --platform=${{ matrix.platform }} --arch=x64 --out=release --overwrite --ignore="^/(\.git|\.github)$"
-      - uses: actions/upload-artifact@v4
+      - name: Compress windows package
+        if: matrix.platform != 'linux'
+        shell: pwsh
+        run: |
+          Get-ChildItem release -Directory | ForEach-Object {
+            Compress-Archive -Path $_.FullName -DestinationPath "$($_.FullName).zip" -Force
+          }
+      - name: Upload to GitHub release
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            TAG="${{ github.event.release.tag_name }}"
+          else
+            TAG="$(gh release view --json tagName -q .tagName)"
+          fi
+          gh release upload "$TAG" $(find release -maxdepth 1 -type f) --clobber
+      - uses: actions/upload-artifact@v6
         with:
           name: dungeon-revealer-desktop-${{ matrix.platform }}-x64
           path: release/*
