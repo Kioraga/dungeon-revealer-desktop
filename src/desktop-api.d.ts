@@ -11,6 +11,7 @@ declare global {
     desktopApi?: {
       listDisplays: () => Promise<DesktopDisplay[]>;
       openPlayerWindow: (displayId?: number | string) => Promise<void>;
+      setPlayerDisplay: (displayId: number | string) => Promise<void>;
       closePlayerWindow: () => Promise<void>;
     };
   }

@@ -77,6 +77,17 @@ if (!app.requestSingleInstanceLock()) {
     ipcMain.handle("player-window:open", (_, displayId) =>
       openPlayerWindow(displayId)
     );
+    ipcMain.handle("player-window:set-display", (_, displayId) => {
+      if (playerWindow && !playerWindow.isDestroyed()) {
+        const display =
+          screen
+            .getAllDisplays()
+            .find((d) => String(d.id) === String(displayId)) ||
+          screen.getPrimaryDisplay();
+        playerWindow.setBounds(display.bounds);
+        playerWindow.setFullScreen(true);
+      }
+    });
     ipcMain.handle("player-window:close", () => closePlayerWindow());
 
     const { bootstrapServer } = require(path.join(
