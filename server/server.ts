@@ -276,11 +276,6 @@ export const bootstrapServer = async (env: ReturnType<typeof getEnv>) => {
   io.on("connection", (socket) => {
     console.log(`WS client ${socket.handshake.address} ${socket.id} connected`);
 
-    // Relay camera state from the DM window's mirror tab to the player window.
-    socket.on("viewState", (payload) =>
-      socket.broadcast.emit("viewState", payload)
-    );
-
     socketSessionStore.set(socket, {
       id: socket.id,
       role: "unauthenticated",
@@ -289,6 +284,18 @@ export const bootstrapServer = async (env: ReturnType<typeof getEnv>) => {
     socket.on("authenticate", ({ password, desiredRole }) => {
       socketIOGraphQLServer.disposeSocket(socket);
       socket.removeAllListeners();
+
+      // Relay camera state from the DM window's mirror tab to the player window.
+      // Registered AFTER removeAllListeners so it survives authentication.
+      socket.on("viewState", (payload) =>
+        socket.broadcast.emit("viewState", payload)
+      );
+
+      // Relay the player window's viewport size (image px) to the DM mirror so
+      // the viewport rectangle keeps the window's shape in real time.
+      socket.on("playerViewport", (payload) =>
+        socket.broadcast.emit("playerViewport", payload)
+      );
 
       const role = getRole(password);
       if (role === null) {

@@ -86,10 +86,12 @@ const Plane = React.forwardRef(
       children,
       position,
       scale,
+      rotation,
       ...props
     }: {
       position: SpringValue<[number, number, number]>;
       scale: SpringValue<[number, number, number]>;
+      rotation: SpringValue<[number, number, number]>;
       children: React.ReactNode;
     },
     ref: React.ForwardedRef<THREE.Mesh>
@@ -101,6 +103,8 @@ const Plane = React.forwardRef(
       <animated.group
         position={position}
         scale={scale}
+        // @ts-expect-error: R3F's rotation type misses SpringValue; resolved at runtime like position/scale
+        rotation={rotation}
         onContextMenu={(event) => {
           event.stopPropagation();
           event.nativeEvent.stopPropagation();
@@ -1369,6 +1373,7 @@ const MapViewRenderer = (props: {
   const [spring, set] = useSpring(() => ({
     scale: [1, 1, 1] as [number, number, number],
     position: [0, 0, 0] as [number, number, number],
+    rotation: [0, 0, 0] as [number, number, number],
   }));
 
   // maximumSideLength * maximumSideLength = MAXIMUM_TEXTURE_SIZE * 1024
@@ -1407,6 +1412,7 @@ const MapViewRenderer = (props: {
     set({
       scale: [1, 1, 1],
       position: [0, 0, 0],
+      rotation: [0, 0, 0],
     });
   }, [mapTexture, set]);
 
@@ -1645,6 +1651,7 @@ const MapViewRenderer = (props: {
       <Plane
         position={spring.position}
         scale={spring.scale}
+        rotation={spring.rotation}
         {...bind()}
         ref={planeRef}
       >

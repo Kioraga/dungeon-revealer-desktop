@@ -29,6 +29,8 @@ import { UpdateTokenContext } from "./update-token-context";
 import { LazyLoadedMapView } from "./lazy-loaded-map-view";
 import { IsDungeonMasterContext } from "./is-dungeon-master-context";
 import type { mapView_MapFragment$key } from "./__generated__/mapView_MapFragment.graphql";
+import { PlayerViewportRect } from "./player-viewport-rect";
+import type { PlayerView } from "./player-viewport-rect";
 
 const ToolbarContainer = styled(animated.div)`
   position: absolute;
@@ -85,6 +87,20 @@ export const PlayerMapView = ({
 
   const controlRef = React.useRef<MapControlInterface | null>(null);
 
+  // Player-window view (image center + zoom + rotation), independent of the
+  // mirror camera: the DM drives the player window via the viewport rectangle.
+  const [playerView, setPlayerView] = React.useState<PlayerView>({
+    cx: 0,
+    cy: 0,
+    scale: 1,
+    rotation: 0,
+  });
+
+  // Reset to full-map fit when the map changes (the rectangle re-initializes cx/cy).
+  React.useEffect(() => {
+    setPlayerView({ cx: 0, cy: 0, scale: 1, rotation: 0 });
+  }, [mapId]);
+
   // Player window (mirror): apply camera state broadcast by the DM window.
   React.useEffect(() => {
     if (!isMapOnly) return;
@@ -92,6 +108,7 @@ export const PlayerMapView = ({
       cx?: number;
       cy?: number;
       scale?: number;
+      rotation?: number;
     }) => {
       if (
         payload?.cx == null ||
@@ -106,9 +123,18 @@ export const PlayerMapView = ({
         payload.cx,
         payload.cy,
       ]);
+      // Rotate the center offset with the same transform the plane applies, so
+      // the player window shows the map rotated exactly like the DM rectangle.
+      const rotation = payload.rotation ?? 0;
+      const radians = (rotation * Math.PI) / 180;
+      const cos = Math.cos(radians);
+      const sin = Math.sin(radians);
+      const rx = cos * tx + sin * ty;
+      const ry = -sin * tx + cos * ty;
       ctx.setMapState({
-        position: [-tx * payload.scale, -ty * payload.scale, 0],
+        position: [-rx * payload.scale, -ry * payload.scale, 0],
         scale: [payload.scale, payload.scale, 1],
+        rotation: [0, 0, -radians] as [number, number, number],
         immediate: true,
       });
     };
@@ -118,23 +144,74 @@ export const PlayerMapView = ({
     };
   }, [socket, isMapOnly, mapId]);
 
-  // DM window (Player tab, mirror): publish camera state so the player window follows.
+  // DM window (Player tab, mirror): publish the player-window view so the
+  // player window follows the viewport rectangle.
   React.useEffect(() => {
     if (isMapOnly) return;
+    if (playerView.cx === 0 && playerView.cy === 0) {
+      return; // not initialized yet (waiting for the map image)
+    }
+    socket.emit("viewState", playerView);
+  }, [socket, isMapOnly, playerView]);
+
+  // Periodic resync so a player window that connects after the view changed
+  // still catches up.
+  const playerViewRef = React.useRef(playerView);
+  playerViewRef.current = playerView;
+  React.useEffect(() => {
+    if (isMapOnly) return;
+    if (playerView.cx === 0 && playerView.cy === 0) {
+      return;
+    }
+    const interval = setInterval(() => {
+      socket.emit("viewState", playerViewRef.current);
+    }, 250);
+    return () => clearInterval(interval);
+  }, [socket, isMapOnly, playerView]);
+
+  // DM mirror: remember the player window's viewport (image px) so the
+  // viewport rectangle keeps the window's shape, updating on window resize.
+  const [playerCap, setPlayerCap] = React.useState<null | {
+    capW: number;
+    capH: number;
+  }>(null);
+  React.useEffect(() => {
+    if (isMapOnly) return;
+    const listener = (payload: { capW?: number; capH?: number }) => {
+      if (payload?.capW && payload?.capH) {
+        setPlayerCap({ capW: payload.capW, capH: payload.capH });
+      }
+    };
+    socket.on("playerViewport", listener);
+    return () => {
+      socket.off("playerViewport", listener);
+    };
+  }, [socket, isMapOnly]);
+
+  // Player window: report the viewport size (image px) so the DM mirror can
+  // draw the viewport rectangle with the window's shape.
+  React.useEffect(() => {
+    if (!isMapOnly) return;
     let lastKey = "";
-    const publish = () => {
+    const report = () => {
       const ctx = controlRef.current?.getContext();
       if (!ctx) return;
-      const [sx] = ctx.mapState.scale.get();
-      const [cx, cy] = ctx.helper.threePointToImageCoordinates([0, 0]);
-      const key = `${sx.toFixed(4)},${cx.toFixed(2)},${cy.toFixed(2)}`;
+      const k = ctx.helper.size.fromImageToThree(1);
+      if (!k) return;
+      const capW = ctx.viewport.width / k;
+      const capH = ctx.viewport.height / k;
+      const key = `${capW.toFixed(2)},${capH.toFixed(2)}`;
       if (key === lastKey) return;
       lastKey = key;
-      socket.emit("viewState", { cx, cy, scale: sx });
+      socket.emit("playerViewport", { capW, capH });
     };
-    const interval = setInterval(publish, 100);
-    return () => clearInterval(interval);
-  }, [socket, isMapOnly, mapId]);
+    const interval = setInterval(report, 250);
+    window.addEventListener("resize", report);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("resize", report);
+    };
+  }, [socket, isMapOnly]);
 
   React.useEffect(() => {
     const contextmenuListener = (ev: Event) => {
@@ -226,6 +303,7 @@ export const PlayerMapView = ({
           cursor: isMapOnly ? "default" : "grab",
           background: "black",
           height: "100vh",
+          position: "relative",
         }}
       >
         <FlatContextProvider
@@ -289,6 +367,15 @@ export const PlayerMapView = ({
             </React.Suspense>
           ) : null}
         </FlatContextProvider>
+        {map && !isMapOnly ? (
+          <PlayerViewportRect
+            mapId={mapId}
+            controlRef={controlRef}
+            view={playerView}
+            cap={playerCap}
+            onChange={(updates) => setPlayerView((v) => ({ ...v, ...updates }))}
+          />
+        ) : null}
       </div>
       {!showSplashScreen ? (
         isMapOnly ? null : (
@@ -353,6 +440,26 @@ export const PlayerMapView = ({
                           <Icon.ZoomOut boxSize="20px" />
                           <Icon.Label>Zoom Out</Icon.Label>
                         </Toolbar.LongPressButton>
+                      </Toolbar.Item>
+                      <Toolbar.Item isActive>
+                        <Toolbar.Button
+                          onClick={() => {
+                            setPlayerView((v) => ({
+                              ...v,
+                              rotation: (v.rotation + 90) % 360,
+                            }));
+                          }}
+                          onTouchStart={(ev) => {
+                            ev.preventDefault();
+                            setPlayerView((v) => ({
+                              ...v,
+                              rotation: (v.rotation + 90) % 360,
+                            }));
+                          }}
+                        >
+                          <Icon.RotateCW boxSize="20px" />
+                          <Icon.Label>Rotate</Icon.Label>
+                        </Toolbar.Button>
                       </Toolbar.Item>
                     </Toolbar.Group>
                   </React.Fragment>
