@@ -85,10 +85,10 @@ const useChatWidth = () => {
   return chatWidth;
 };
 
-const AuthenticatedAppShellRenderer: React.FC<{ isMapOnly: boolean }> = ({
-  isMapOnly,
-  children,
-}) => {
+const AuthenticatedAppShellRenderer: React.FC<{
+  isMapOnly: boolean;
+  role: AuthenticatedRole;
+}> = ({ isMapOnly, role, children }) => {
   const [chatState, setShowChatState] = useShowChatState();
   const [diceRollNotesState, setDiceRollNotesState] =
     useShowDiceRollNotesState();
@@ -104,9 +104,14 @@ const AuthenticatedAppShellRenderer: React.FC<{ isMapOnly: boolean }> = ({
     isLoggedIn
   );
 
+  const isDm = role === "DM";
+
+  // Only the DM window joins the chat; the player window stays silent (view-only).
   React.useEffect(() => {
-    logIn();
-  }, [logIn]);
+    if (isDm) {
+      logIn();
+    }
+  }, [logIn, isDm]);
 
   const [showSearch, setShowSearch] = React.useState(false);
 
@@ -137,7 +142,7 @@ const AuthenticatedAppShellRenderer: React.FC<{ isMapOnly: boolean }> = ({
     };
   }, [chatWidth, chatPosition.x]);
 
-  if (isLoggedIn === false) {
+  if (isDm && isLoggedIn === false) {
     return null;
   }
 
@@ -242,9 +247,8 @@ export const AuthenticatedAppShell: React.FC<{
     React.useState<ConnectionMode>("connecting");
 
   /**
-   * We only use one tab at a time. The others will be disconnected automatically upon opening dungeon-revealer in another tab.
-   * You can still use dungeon-revealer in two tabs by using the incognito mode of the browser.
-   * We do this in order to prevent message/user connect/music sound effect spamming.
+   * Multi-window desktop app: DM window + player window stay connected at the same time.
+   * (The upstream web version only allowed one active tab at a time; that is removed here.)
    */
   React.useEffect(() => {
     const authenticate = () => {
@@ -276,25 +280,6 @@ export const AuthenticatedAppShell: React.FC<{
       authenticate();
     }
 
-    const tabId = String(
-      parseInt(localStorage.getItem("app.tabId") || "0", 10) + 1
-    );
-    localStorage.setItem("app.tabId", tabId);
-    localStorage.setItem("app.activeTabId", tabId);
-
-    window.addEventListener("storage", (ev) => {
-      if (ev.key === "app.activeTabId" && ev.newValue !== tabId) {
-        socket.disconnect();
-      }
-    });
-
-    window.addEventListener("focus", () => {
-      localStorage.setItem("app.activeTabId", tabId);
-      if (!socket.connected) {
-        socket.connect();
-      }
-    });
-
     return () => {
       socket.off("connect");
       socket.off("reconnecting");
@@ -302,7 +287,7 @@ export const AuthenticatedAppShell: React.FC<{
       socket.off("reconnect_failed");
       socket.off("disconnect");
     };
-  }, [socket, password]);
+  }, [socket, password, role]);
 
   if (connectionMode !== "authenticated") {
     return <SplashScreen text={connectionMode} />;
@@ -312,7 +297,7 @@ export const AuthenticatedAppShell: React.FC<{
     <RoleContext.Provider value={role}>
       <SoundSettingsProvider>
         <RelayEnvironmentProvider environment={relayEnvironment}>
-          <AuthenticatedAppShellRenderer isMapOnly={isMapOnly}>
+          <AuthenticatedAppShellRenderer isMapOnly={isMapOnly} role={role}>
             {children}
           </AuthenticatedAppShellRenderer>
         </RelayEnvironmentProvider>

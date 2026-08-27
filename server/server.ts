@@ -276,6 +276,11 @@ export const bootstrapServer = async (env: ReturnType<typeof getEnv>) => {
   io.on("connection", (socket) => {
     console.log(`WS client ${socket.handshake.address} ${socket.id} connected`);
 
+    // Relay camera commands from the DM window's mirror tab to the player window.
+    socket.on("viewStateCommand", (payload) =>
+      socket.broadcast.emit("viewStateCommand", payload)
+    );
+
     socketSessionStore.set(socket, {
       id: socket.id,
       role: "unauthenticated",

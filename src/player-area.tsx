@@ -73,14 +73,18 @@ const MapPingMutation = graphql`
   }
 `;
 
-const PlayerMap = ({
+export type PlayerViewCommand = "center" | "zoomIn" | "zoomOut";
+
+export const PlayerMap = ({
   fetch,
   socket,
   isMapOnly,
+  onCommand,
 }: {
   fetch: typeof window.fetch;
   socket: ReturnType<typeof useSocket>;
   isMapOnly: boolean;
+  onCommand?: (command: PlayerViewCommand) => void;
 }) => {
   const currentMap = useQuery<playerArea_PlayerMap_ActiveMapQuery>(
     PlayerMap_ActiveMapQuery
@@ -92,6 +96,23 @@ const PlayerMap = ({
 
   const controlRef = React.useRef<MapControlInterface | null>(null);
   const [markedAreas, setMarkedAreas] = React.useState<MarkedArea[]>(() => []);
+
+  // Apply camera commands broadcast by the DM window's mirror tab.
+  React.useEffect(() => {
+    const listener = (payload: { command?: PlayerViewCommand }) => {
+      const command = payload?.command;
+      if (!command) return;
+      const controls = controlRef.current?.controls;
+      if (!controls) return;
+      if (command === "center") controls.center();
+      if (command === "zoomIn") controls.zoomIn();
+      if (command === "zoomOut") controls.zoomOut();
+    };
+    socket.on("viewStateCommand", listener);
+    return () => {
+      socket.off("viewStateCommand", listener);
+    };
+  }, [socket]);
 
   React.useEffect(() => {
     const contextmenuListener = (ev: Event) => {
@@ -118,20 +139,22 @@ const PlayerMap = ({
 
   const updateToken = React.useCallback(
     ({ id, ...updates }) => {
-      if (currentMap.data?.activeMap) {
-        fetch(`/map/${currentMap.data.activeMap.id}/token/${id}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            ...updates,
-            socketId: socket.id,
-          }),
-        });
+      // Player window is view-only; the DM drives all token movement.
+      if (isMapOnly || !currentMap.data?.activeMap) {
+        return;
       }
+      fetch(`/map/${currentMap.data.activeMap.id}/token/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...updates,
+          socketId: socket.id,
+        }),
+      });
     },
-    [currentMap, fetch]
+    [currentMap, fetch, isMapOnly, socket.id]
   );
 
   const [toolbarPosition, setToolbarPosition] = useSpring(() => ({
@@ -204,6 +227,9 @@ const PlayerMap = ({
               {
                 value: {
                   onMarkArea: ([x, y]) => {
+                    if (isMapOnly) {
+                      return;
+                    }
                     if (currentMap.data?.activeMap) {
                       mapPing({
                         variables: {
@@ -269,10 +295,12 @@ const PlayerMap = ({
                         <Toolbar.Button
                           onClick={() => {
                             controlRef.current?.controls.center();
+                            onCommand?.("center");
                           }}
                           onTouchStart={(ev) => {
                             ev.preventDefault();
                             controlRef.current?.controls.center();
+                            onCommand?.("center");
                           }}
                         >
                           <Icon.Compass boxSize="20px" />
@@ -283,10 +311,12 @@ const PlayerMap = ({
                         <Toolbar.LongPressButton
                           onClick={() => {
                             controlRef.current?.controls.zoomIn();
+                            onCommand?.("zoomIn");
                           }}
                           onLongPress={() => {
                             const interval = setInterval(() => {
                               controlRef.current?.controls.zoomIn();
+                              onCommand?.("zoomIn");
                             }, 100);
 
                             return () => clearInterval(interval);
@@ -300,10 +330,12 @@ const PlayerMap = ({
                         <Toolbar.LongPressButton
                           onClick={() => {
                             controlRef.current?.controls.zoomOut();
+                            onCommand?.("zoomOut");
                           }}
                           onLongPress={() => {
                             const interval = setInterval(() => {
                               controlRef.current?.controls.zoomOut();
+                              onCommand?.("zoomOut");
                             }, 100);
 
                             return () => clearInterval(interval);

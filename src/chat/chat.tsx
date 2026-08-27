@@ -3,7 +3,6 @@ import graphql from "babel-plugin-relay/macro";
 import { useQuery, useSubscription } from "relay-hooks";
 import { ConnectionHandler } from "relay-runtime";
 import { Stack } from "@chakra-ui/react";
-import { ChatUserList } from "./chat-user-list";
 import { ChatMessages } from "./chat-messages";
 import { ChatSettings } from "./chat-settings";
 import { chatSubscription } from "./__generated__/chatSubscription.graphql";
@@ -18,9 +17,6 @@ import notificationSound from "./notification.mp3";
 
 import styled from "@emotion/styled/macro";
 import { ChatTextArea } from "./chat-textarea";
-import { chatUserUpdateSubscription } from "./__generated__/chatUserUpdateSubscription.graphql";
-import { ChatOnlineUserIndicator } from "./chat-online-user-indicator";
-import { isAbstractGraphQLMemberType } from "../relay-utilities";
 import { chatMessageSoundSubscription } from "./__generated__/chatMessageSoundSubscription.graphql";
 import { useSoundSettings } from "../sound-settings";
 import { useStaticRef } from "../hooks/use-static-ref";
@@ -49,39 +45,9 @@ const ChatMessageSoundSubscription = graphql`
   }
 `;
 
-const UserUpdateSubscription = graphql`
-  subscription chatUserUpdateSubscription {
-    userUpdate {
-      ... on UserRemoveUpdate {
-        __typename
-        userId
-        usersCount
-      }
-      ... on UserAddUpdate {
-        __typename
-        user {
-          id
-          name
-        }
-        usersCount
-      }
-      ... on UserChangeUpdate {
-        __typename
-        user {
-          id
-          name
-        }
-      }
-    }
-  }
-`;
-
 const ChatQuery = graphql`
   query chatQuery {
     ...chatMessages_chat
-    # TODO: move this stuff to own pagination/fragment container.
-    ...chatUserList_data
-    ...chatOnlineUserIndicator_data
     me {
       id
       ...chatSettings_data
@@ -173,7 +139,7 @@ export const useChatSoundsAndUnreadCount = (
 export const Chat: React.FC<{
   toggleShowDiceRollNotes: () => void;
 }> = React.memo(({ toggleShowDiceRollNotes }) => {
-  const [mode, setMode] = React.useState<"chat" | "user" | "settings">("chat");
+  const [mode, setMode] = React.useState<"chat" | "settings">("chat");
 
   useSubscription<chatSubscription>(
     useStaticRef(() => ({
@@ -198,42 +164,6 @@ export const Chat: React.FC<{
             "ChatMessage"
           );
           ConnectionHandler.insertEdgeAfter(chat, edge);
-        }
-      },
-    }))
-  );
-
-  useSubscription<chatUserUpdateSubscription>(
-    useStaticRef(() => ({
-      subscription: UserUpdateSubscription,
-      variables: {},
-      updater: (store) => {
-        const users = ConnectionHandler.getConnection(
-          store.getRoot(),
-          "chatUserList_users"
-        );
-
-        const updateRecord = store.getRootField("userUpdate");
-        const root = store.getRoot();
-
-        if (!users || !updateRecord) return;
-
-        // see https://github.com/relay-tools/relay-compiler-language-typescript/issues/186
-        if (isAbstractGraphQLMemberType(updateRecord, "UserAddUpdate")) {
-          const edge = ConnectionHandler.createEdge(
-            store,
-            users,
-            updateRecord.getLinkedRecord("user"),
-            "User"
-          );
-          ConnectionHandler.insertEdgeAfter(users, edge);
-          root.setValue(updateRecord.getValue("usersCount"), "usersCount");
-        } else if (
-          isAbstractGraphQLMemberType(updateRecord, "UserRemoveUpdate")
-        ) {
-          const userId = updateRecord.getValue("userId");
-          ConnectionHandler.deleteNode(users, userId);
-          root.setValue(updateRecord.getValue("usersCount"), "usersCount");
         }
       },
     }))
@@ -269,17 +199,6 @@ export const Chat: React.FC<{
         </HorizontalNavigation.Button>
         <HorizontalNavigation.Button
           small
-          isActive={mode === "user"}
-          fullWidth
-          onClick={() => setMode("user")}
-        >
-          <Icon.Users boxSize="12px" />
-          <span>
-            Users (<ChatOnlineUserIndicator data={data} />)
-          </span>
-        </HorizontalNavigation.Button>
-        <HorizontalNavigation.Button
-          small
           isActive={mode === "settings"}
           fullWidth
           onClick={() => setMode("settings")}
@@ -301,10 +220,6 @@ export const Chat: React.FC<{
             <Icon.Dice boxSize="16px" /> <span> Dice Roll Notes</span>
           </Button.Tertiary>
         </Stack>
-      ) : mode === "user" ? (
-        <div style={{ marginTop: 16 }}>
-          <ChatUserList data={data} />
-        </div>
       ) : mode === "settings" ? (
         <div style={{ marginTop: 16 }}>
           <ChatSettings data={data.me} />

@@ -95,6 +95,8 @@ import { dmMap_MapPingMutation } from "./__generated__/dmMap_MapPingMutation.gra
 import { UpdateTokenContext } from "../update-token-context";
 import { IsDungeonMasterContext } from "../is-dungeon-master-context";
 import { LazyLoadedMapView } from "../lazy-loaded-map-view";
+import * as HorizontalNavigation from "../horizontal-navigation";
+import type { DesktopDisplay } from "../desktop-api";
 
 type ToolMapRecord = {
   name: string;
@@ -639,11 +641,16 @@ export const DmMap = (props: {
   const [toolOverride, setToolOverride] = React.useState<null | MapTool>(null);
   const activeTool = toolOverride ?? userSelectedTool;
 
-  const isCurrentMapLive = map.id !== null && map.id === props.liveMapId;
-  const isOtherMapLive = props.liveMapId !== null;
+  const [showDisplaySettings, setShowDisplaySettings] = React.useState(false);
 
   const showToast = useToast();
   const asyncClipBoardApi = useAsyncClipboardApi();
+
+  const isConfiguringGrid = userSelectedTool === ConfigureGridMapTool;
+  const isConfiguringGridRef = React.useRef(isConfiguringGrid);
+  React.useEffect(() => {
+    isConfiguringGridRef.current = isConfiguringGrid;
+  });
 
   const copyMapToClipboard = () => {
     if (!controlRef.current || !asyncClipBoardApi) {
@@ -675,12 +682,6 @@ export const DmMap = (props: {
         .catch(console.error);
     });
   };
-
-  const isConfiguringGrid = userSelectedTool === ConfigureGridMapTool;
-  const isConfiguringGridRef = React.useRef(isConfiguringGrid);
-  React.useEffect(() => {
-    isConfiguringGridRef.current = isConfiguringGrid;
-  });
 
   React.useEffect(() => {
     const listener = (ev: KeyboardEvent) => {
@@ -960,7 +961,12 @@ export const DmMap = (props: {
                   <ConditionalWrap
                     condition={props.liveMapId !== null}
                     wrap={(children) => (
-                      <Toolbar.Button onClick={props.hideMap}>
+                      <Toolbar.Button
+                        onClick={() => {
+                          props.hideMap();
+                          window.desktopApi?.closePlayerWindow();
+                        }}
+                      >
                         {children}
                       </Toolbar.Button>
                     )}
@@ -984,22 +990,6 @@ export const DmMap = (props: {
                     </Icon.Label>
                   </ConditionalWrap>
                 </Toolbar.Item>
-                {isCurrentMapLive ? (
-                  <Toolbar.Item>
-                    <Icon.Radio stroke="hsl(160, 51%, 49%)" boxSize="20px" />
-                    <Icon.Label color="hsl(160, 51%, 49%)">Live</Icon.Label>
-                  </Toolbar.Item>
-                ) : isOtherMapLive ? (
-                  <Toolbar.Item>
-                    <Icon.Radio stroke="hsl(48, 94%, 68%)" boxSize="20px" />
-                    <Icon.Label color="hsl(48, 94%, 68%)">Live</Icon.Label>
-                  </Toolbar.Item>
-                ) : (
-                  <Toolbar.Item>
-                    <Icon.Radio stroke="hsl(211, 27%, 70%)" boxSize="20px" />
-                    <Icon.Label color="hsl(211, 27%, 70%)">Not Live</Icon.Label>
-                  </Toolbar.Item>
-                )}
                 {asyncClipBoardApi ? (
                   <Toolbar.Item isActive>
                     <Toolbar.Button onClick={copyMapToClipboard}>
@@ -1016,12 +1006,33 @@ export const DmMap = (props: {
                         return;
                       }
                       props.sendLiveMap(context.fogCanvas);
+                      const displayId = window.localStorage.getItem(
+                        "settings.playerDisplayId"
+                      );
+                      window.desktopApi?.openPlayerWindow(
+                        displayId ?? undefined
+                      );
                     }}
                   >
                     <Icon.Send boxSize="20px" />
-                    <Icon.Label>Send</Icon.Label>
+                    <Icon.Label>Start Sharing</Icon.Label>
                   </Toolbar.Button>
                 </Toolbar.Item>
+                {window.desktopApi ? (
+                  <Toolbar.Item isActive>
+                    <Toolbar.Button
+                      onClick={() => setShowDisplaySettings((show) => !show)}
+                    >
+                      <Icon.Settings boxSize="20px" />
+                      <Icon.Label>Screen</Icon.Label>
+                    </Toolbar.Button>
+                    {showDisplaySettings ? (
+                      <DisplaySettingsPopup
+                        close={() => setShowDisplaySettings(false)}
+                      />
+                    ) : null}
+                  </Toolbar.Item>
+                ) : null}
               </Toolbar.Group>
             </Toolbar>
           </BottomToolbarContainer>
@@ -1041,6 +1052,67 @@ export const DmMap = (props: {
       <SharedTokenMenu currentMapId={map.id} />
       <ContextMenuRenderer map={map} />
     </FlatContextProvider>
+  );
+};
+
+const DisplaySettingsPopup = ({
+  close,
+}: {
+  close: () => void;
+}): React.ReactElement | null => {
+  const [displays, setDisplays] = React.useState<DesktopDisplay[] | null>(null);
+  const [selectedId, setSelectedId] = usePersistedState<string | null>(
+    "settings.playerDisplayId",
+    {
+      encode: (value) => value ?? "",
+      decode: (value) =>
+        typeof value === "string" && value !== "" ? value : null,
+    }
+  );
+  const ref = React.useRef<null | HTMLDivElement>(null);
+  useOnClickOutside<HTMLDivElement>(ref, close);
+
+  React.useEffect(() => {
+    window.desktopApi
+      ?.listDisplays()
+      .then(setDisplays)
+      .catch(() => setDisplays([]));
+  }, []);
+
+  if (!window.desktopApi) {
+    return null;
+  }
+
+  return (
+    <Toolbar.Popup>
+      <div ref={ref} style={{ padding: 12, minWidth: 260 }}>
+        <Heading size="xs" marginBottom="2">
+          Player Screen
+        </Heading>
+        {displays === null ? (
+          <Text>Loading displays...</Text>
+        ) : (
+          <VStack align="stretch" spacing="1">
+            <HorizontalNavigation.Group>
+              {displays.map((display) => (
+                <HorizontalNavigation.Button
+                  key={display.id}
+                  small
+                  isActive={String(display.id) === selectedId}
+                  onClick={() => {
+                    setSelectedId(String(display.id));
+                    close();
+                  }}
+                >
+                  {display.label || `Display ${display.id}`}
+                  {display.isPrimary ? " (Primary)" : ""}
+                </HorizontalNavigation.Button>
+              ))}
+            </HorizontalNavigation.Group>
+          </VStack>
+        )}
+      </div>
+    </Toolbar.Popup>
   );
 };
 
