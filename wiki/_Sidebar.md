@@ -1,25 +1,15 @@
-## [Home](https://github.com/dungeon-revealer/dungeon-revealer/wiki)
-
 ## Setting up
 
-### [Install](https://github.com/dungeon-revealer/dungeon-revealer/wiki/Install)
-
-### [Hosting](https://github.com/dungeon-revealer/dungeon-revealer/wiki/Hosting)
+### [Install](Install.md)
 
 ## Using the app
 
-### [Getting Started](https://github.com/dungeon-revealer/dungeon-revealer/wiki/Getting-Started)
+### [Getting Started](Getting-Started.md)
 
-### [Tokens](https://github.com/dungeon-revealer/dungeon-revealer/wiki/Tokens)
+### [Tokens](Tokens.md)
 
-### [Grid](https://github.com/dungeon-revealer/dungeon-revealer/wiki/Grid)
+### [Grid](Grid.md)
 
-### [Notes](https://github.com/dungeon-revealer/dungeon-revealer/wiki/Notes)
+### [Notes](Notes.md)
 
-### [Dice Macros](https://github.com/dungeon-revealer/dungeon-revealer/wiki/Dice-Macros)
-
-## Other
-
-### [Community Showcase](https://github.com/dungeon-revealer/dungeon-revealer/wiki/Community-Showcase)
-
-### [Contributing](https://github.com/dungeon-revealer/dungeon-revealer/wiki/Contributing)
+### [Dice Macros](Dice-Macros.md)

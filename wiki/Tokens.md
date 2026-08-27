@@ -14,15 +14,15 @@ To add a token, click on the token tool on the left control panel and then click
 
 `color` allows you to select the color of your token. <br>
 
-`visible to players` hides/show the token to players. <br>
-
-`moveable by players` allows the players to move the token from one location to another. <br>
+`visible to players` hides/show the token in the player window. <br>
 
 `lock` locks a token in place making it immovable. **Locking a token makes it impossible for both the Dungeon master and the players to move or delete the token.**
 
 `delete` removes a token from the map.
 
+In this local setup the player window is view-only, so tokens are only moved by the DM. The `moveable by players` option from the original web app does not apply here.
+
 ![token_menu](https://user-images.githubusercontent.com/43377714/94870263-6b0aef80-0447-11eb-8fb1-07bf663eb7a0.PNG)
 ]
 
-Linking a note to a token can be useful for the DM. You can use it for creature/player stats, item descriptions, room notes, or anything else you can think of. Click the `Link` button to link a note to the token. You can choose an existing note or create a new one. See the [Notes](https://github.com/dungeon-revealer/dungeon-revealer/wiki/Notes) page for more details.
+Linking a note to a token can be useful for the DM. You can use it for creature/player stats, item descriptions, room notes, or anything else you can think of. Click the `Link` button to link a note to the token. You can choose an existing note or create a new one. See the [Notes](Notes.md) page for more details.

@@ -185,7 +185,7 @@ This allows powerful features such as conditionals, variable declarations and ma
 
 A dice roll can be assigned to a variable using the `diceRoll` filter.
 
-The `diceRoll` filter is a custom filter built into dungeon-revealer.
+The `diceRoll` filter is a custom filter built into dungeon-revealer-desktop.
 
 Example: `{% assign attackRoll = "1d20" | diceRoll %}`
 
