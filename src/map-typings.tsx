@@ -12,6 +12,7 @@ export type MapTokenEntity = {
   rotation: number;
   color: string;
   label: string;
+  labelColor: string | null;
   x: number;
   y: number;
   isVisibleForPlayers: boolean;

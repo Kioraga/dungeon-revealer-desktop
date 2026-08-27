@@ -186,6 +186,7 @@ const TokenRendererMapTokenFragment = graphql`
     color
     radius
     label
+    labelColor
     rotation
     isLocked
     isMovableByPlayers
@@ -372,6 +373,19 @@ const TokenRenderer = (props: {
         },
         transient: false,
       },
+      labelColor: {
+        type: LevaInputs.COLOR,
+        label: "Title Color",
+        value: token.labelColor ?? "rgb(0, 0, 0)",
+        onChange: (labelColor: string, _, { initial, fromPanel }) => {
+          if (initial || !fromPanel) {
+            return;
+          }
+          pendingChangesRef.current.labelColor = labelColor;
+          enqueueSave();
+        },
+        transient: false,
+      },
       color: {
         type: LevaInputs.COLOR,
         label: "Color",
@@ -461,6 +475,7 @@ const TokenRenderer = (props: {
   React.useEffect(() => {
     const values: Record<string, any> = {
       text: token.label,
+      labelColor: token.labelColor,
       isLocked: token.isLocked,
       isMovableByPlayers: token.isMovableByPlayers,
       isVisibleForPlayers: token.isVisibleForPlayers,
@@ -783,6 +798,7 @@ const TokenRenderer = (props: {
         >
           <TokenLabel
             text={textLabel}
+            color={values.labelColor ?? "#000000"}
             position={undefined}
             backgroundColor={token.tokenImage ? "#ffffff" : null}
             fontSize={(columnWidth * sharedMapState.ratio) / 930}
@@ -803,6 +819,7 @@ function arrayEquals(a: unknown, b: unknown) {
 
 const TokenLabel = (props: {
   text: string;
+  color: string;
   position?: [number, number, number];
   backgroundColor: null | string;
   fontSize: number;
@@ -860,7 +877,7 @@ const TokenLabel = (props: {
       ) : null}
       <CanvasText
         fontSize={props.fontSize}
-        color="black"
+        color={props.color}
         font={buildUrl("/fonts/Roboto-Bold.ttf")}
         anchorX="center"
         anchorY="middle"

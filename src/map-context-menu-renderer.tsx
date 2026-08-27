@@ -38,6 +38,7 @@ const MapFragment = graphql`
       rotation
       color
       label
+      labelColor
       radius
       isVisibleForPlayers
       isMovableByPlayers

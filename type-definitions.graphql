@@ -335,6 +335,7 @@ type MapToken {
   radius: Float!
   color: String!
   label: String!
+  labelColor: String
   isVisibleForPlayers: Boolean!
   isMovableByPlayers: Boolean!
   isLocked: Boolean!

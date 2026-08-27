@@ -303,6 +303,7 @@ module.exports = ({ roleMiddleware, maps, settings, emitter }) => {
         ...updates,
         type: req.body.type,
         label: req.body.label,
+        labelColor: req.body.labelColor,
         color: req.body.color,
         radius: req.body.radius,
         rotation: req.body.rotation,

@@ -48,6 +48,7 @@ export type MapTokenEntity = {
   rotation: number;
   color: string;
   label: string;
+  labelColor: string | null;
   x: number;
   y: number;
   isVisibleForPlayers: boolean;
@@ -356,6 +357,7 @@ export class Maps {
       radius?: null | number;
       color?: string | null;
       label?: string | null;
+      labelColor?: string | null;
       isLocked?: boolean | null;
       isVisibleForPlayers?: boolean | null;
       isMovableByPlayers?: boolean | null;
@@ -381,6 +383,7 @@ export class Maps {
             radius: props.radius ?? (map.grid?.columnWidth ?? 50) / 2,
             color: props.color ?? "red",
             label: props.label ?? "A",
+            labelColor: props.labelColor ?? null,
             isVisibleForPlayers: props.isVisibleForPlayers ?? false,
             isMovableByPlayers: props.isMovableByPlayers ?? false,
             isLocked: props.isLocked ?? false,
@@ -414,6 +417,7 @@ export class Maps {
       radius,
       color,
       label,
+      labelColor,
       isVisibleForPlayers,
       isLocked,
       isMovableByPlayers,
@@ -429,6 +433,7 @@ export class Maps {
       radius?: number;
       color?: number;
       label?: string;
+      labelColor?: string | null;
       isVisibleForPlayers?: boolean;
       isLocked?: boolean;
       isMovableByPlayers?: boolean;
@@ -486,6 +491,9 @@ export class Maps {
         }
         if (label !== undefined) {
           token.label = label;
+        }
+        if (labelColor !== undefined) {
+          token.labelColor = labelColor;
         }
         if (isVisibleForPlayers !== undefined) {
           token.isVisibleForPlayers = isVisibleForPlayers;

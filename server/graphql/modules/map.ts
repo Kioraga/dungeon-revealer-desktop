@@ -462,6 +462,10 @@ const GraphQLMapTokenType = t.objectType<MapTokenEntity>({
       type: t.NonNull(t.String),
     }),
     t.field({
+      name: "labelColor",
+      type: t.String,
+    }),
+    t.field({
       name: "isVisibleForPlayers",
       type: t.NonNull(t.Boolean),
     }),
