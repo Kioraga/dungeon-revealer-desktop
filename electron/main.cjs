@@ -21,6 +21,7 @@ if (!app.requestSingleInstanceLock()) {
       width: 1400,
       height: 900,
       icon: path.join(__dirname, "..", "build", "images", "icons", "android-chrome-512x512.png"),
+      autoHideMenuBar: true,
       webPreferences: {
         preload: path.join(__dirname, "preload.cjs"),
         contextIsolation: true,
@@ -30,6 +31,9 @@ if (!app.requestSingleInstanceLock()) {
     mainWindow.loadURL(`${appUrl}/dm`);
     mainWindow.on("closed", () => {
       mainWindow = null;
+      // Closing the DM window is the app's exit signal, even while the player
+      // window is still open (app.quit() closes every window first).
+      app.quit();
     });
   };
 
