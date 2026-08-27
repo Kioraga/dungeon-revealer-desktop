@@ -642,7 +642,10 @@ export const DmMap = (props: {
   const activeTool = toolOverride ?? userSelectedTool;
 
   const [showDisplaySettings, setShowDisplaySettings] = React.useState(false);
-  const [selectedDisplayId, setSelectedDisplayId] = usePersistedState<
+  // Persisted display key (stable name, or a legacy id from before the name
+  // migration): display.id is NOT stable across Linux restarts, so the raw id
+  // would silently fall back to the primary screen on the next launch.
+  const [selectedDisplayKey, setSelectedDisplayKey] = usePersistedState<
     string | null
   >("settings.playerDisplayId", {
     encode: (value) => value ?? "",
@@ -651,19 +654,19 @@ export const DmMap = (props: {
   });
 
   // Always have a display selected: default to the primary one when nothing
-  // has been persisted yet.
+  // has been persisted yet, persisting its stable name.
   React.useEffect(() => {
-    if (selectedDisplayId !== null || !window.desktopApi) return;
+    if (selectedDisplayKey !== null || !window.desktopApi) return;
     window.desktopApi
       .listDisplays()
       .then((displays) => {
         const primary = displays.find((d) => d.isPrimary) ?? displays[0];
-        if (primary) {
-          setSelectedDisplayId(String(primary.id));
+        if (primary?.name) {
+          setSelectedDisplayKey(primary.name);
         }
       })
       .catch(() => {});
-  }, [selectedDisplayId, setSelectedDisplayId]);
+  }, [selectedDisplayKey, setSelectedDisplayKey]);
 
   const showToast = useToast();
   const asyncClipBoardApi = useAsyncClipboardApi();
@@ -998,7 +1001,7 @@ export const DmMap = (props: {
                         props.setIsSharing(true);
                         props.sendLiveMap(context.fogCanvas);
                         window.desktopApi?.openPlayerWindow(
-                          selectedDisplayId ?? undefined
+                          selectedDisplayKey ?? undefined
                         );
                       }
                     }}
@@ -1036,10 +1039,12 @@ export const DmMap = (props: {
                     </Toolbar.Button>
                     {showDisplaySettings ? (
                       <DisplaySettingsPopup
-                        selectedId={selectedDisplayId}
-                        onSelect={(id) => {
-                          setSelectedDisplayId(id);
-                          window.desktopApi?.setPlayerDisplay(id);
+                        selectedKey={selectedDisplayKey}
+                        onSelect={(display) => {
+                          setSelectedDisplayKey(display.name ?? null);
+                          window.desktopApi?.setPlayerDisplay(
+                            String(display.id)
+                          );
                         }}
                         close={() => setShowDisplaySettings(false)}
                       />
@@ -1069,12 +1074,12 @@ export const DmMap = (props: {
 };
 
 const DisplaySettingsPopup = ({
-  selectedId,
+  selectedKey,
   onSelect,
   close,
 }: {
-  selectedId: string | null;
-  onSelect: (id: string) => void;
+  selectedKey: string | null;
+  onSelect: (display: DesktopDisplay) => void;
   close: () => void;
 }): React.ReactElement | null => {
   const [displays, setDisplays] = React.useState<DesktopDisplay[] | null>(null);
@@ -1105,8 +1110,11 @@ const DisplaySettingsPopup = ({
             {displays.map((display) => (
               <ScreenButton
                 key={display.id}
-                isActive={String(display.id) === selectedId}
-                onClick={() => onSelect(String(display.id))}
+                isActive={
+                  String(display.id) === selectedKey ||
+                  (display.name ?? null) === selectedKey
+                }
+                onClick={() => onSelect(display)}
               >
                 {display.name ?? display.label ?? `Display ${display.id}`}
                 {display.isPrimary ? " ★" : ""}

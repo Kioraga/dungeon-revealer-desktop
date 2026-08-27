@@ -4,6 +4,7 @@
 // ponytail: the server listens on an ephemeral 127.0.0.1 port per launch, so no fixed port is exposed and browsers can't reach it. The socket must stay: Electron's renderer talks to the in-process server over HTTP/WebSocket.
 const { app, BrowserWindow, ipcMain, screen } = require("electron");
 const path = require("path");
+const fs = require("fs");
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();
@@ -37,15 +38,12 @@ if (!app.requestSingleInstanceLock()) {
     });
   };
 
-  const openPlayerWindow = (displayId) => {
+  const openPlayerWindow = async (displayKey) => {
     if (playerWindow && !playerWindow.isDestroyed()) {
       playerWindow.focus();
       return;
     }
-    const displays = screen.getAllDisplays();
-    const display =
-      displays.find((d) => String(d.id) === String(displayId)) ||
-      screen.getPrimaryDisplay();
+    const display = await resolveDisplay(displayKey);
     playerWindow = new BrowserWindow({
       x: display.bounds.x,
       y: display.bounds.y,
@@ -97,6 +95,36 @@ if (!app.requestSingleInstanceLock()) {
     }
   };
 
+  // Stable display key across sessions: Electron's display.id is NOT stable on
+  // Linux across restarts (Wayland assigns per-session ids), but the XRandR
+  // label / Wayland output name is. The DM window persists this key so the
+  // selected screen restores on the next launch.
+  const getDisplayName = (display, outputs) => {
+    if (display.label) return display.label;
+    if (!outputs) return null;
+    const match =
+      outputs.find((o) => o.x === display.bounds.x && o.y === display.bounds.y) ||
+      outputs.find(
+        (o) =>
+          Math.abs(o.x - display.bounds.x) <= 2 &&
+          Math.abs(o.y - display.bounds.y) <= 2
+      );
+    return match ? (match.desc || match.name) : null;
+  };
+
+  // Resolve a persisted display key (stable name, legacy id, or null) to a
+  // live display, falling back to the primary one.
+  const resolveDisplay = async (key) => {
+    const displays = screen.getAllDisplays();
+    if (!key) return screen.getPrimaryDisplay();
+    const byId = displays.find((d) => String(d.id) === String(key));
+    if (byId) return byId;
+    const outputs = await getWaylandOutputs();
+    const byName = displays.find((d) => getDisplayName(d, outputs) === key);
+    if (byName) return byName;
+    return screen.getPrimaryDisplay();
+  };
+
   app.whenReady().then(async () => {
     ipcMain.handle("displays:list", async () => {
       const displays = screen.getAllDisplays().map(
@@ -108,31 +136,14 @@ if (!app.requestSingleInstanceLock()) {
         })
       );
       const outputs = await getWaylandOutputs();
-      return displays.map((d) => {
-        let name = d.label || null;
-        if (!name && outputs) {
-          const match =
-            outputs.find((o) => o.x === d.bounds.x && o.y === d.bounds.y) ||
-            outputs.find(
-              (o) =>
-                Math.abs(o.x - d.bounds.x) <= 2 &&
-                Math.abs(o.y - d.bounds.y) <= 2
-            );
-          name = match ? (match.desc || match.name) : null;
-        }
-        return { ...d, name };
-      });
+      return displays.map((d) => ({ ...d, name: getDisplayName(d, outputs) }));
     });
-    ipcMain.handle("player-window:open", (_, displayId) =>
-      openPlayerWindow(displayId)
+    ipcMain.handle("player-window:open", (_, displayKey) =>
+      openPlayerWindow(displayKey)
     );
-    ipcMain.handle("player-window:set-display", (_, displayId) => {
+    ipcMain.handle("player-window:set-display", async (_, displayKey) => {
       if (playerWindow && !playerWindow.isDestroyed()) {
-        const display =
-          screen
-            .getAllDisplays()
-            .find((d) => String(d.id) === String(displayId)) ||
-          screen.getPrimaryDisplay();
+        const display = await resolveDisplay(displayKey);
         playerWindow.setBounds(display.bounds);
         playerWindow.setFullScreen(true);
       }
@@ -153,14 +164,37 @@ if (!app.requestSingleInstanceLock()) {
     ));
 
     const { httpServer } = await bootstrapServer(getEnv(process.env));
-    await new Promise((resolve, reject) => {
-      httpServer.once("error", reject);
-      httpServer.listen(0, process.env.HOST, resolve);
-    });
 
-    // Ephemeral port: nothing fixed is exposed. The renderer needs the URL, so
-    // resolve it from the OS-assigned port.
-    appUrl = `http://127.0.0.1:${httpServer.address().port}`;
+    // localStorage is scoped to the origin (http://127.0.0.1:PORT), so an
+    // ephemeral port per launch = empty storage every restart (lost
+    // loadedMapId, dmPassword, player display...). Rebind the previous
+    // session's port so the origin stays stable; fall back to ephemeral when
+    // another process grabbed it.
+    const portFile = path.join(app.getPath("userData"), "server-port");
+    let lastPort = 0;
+    try {
+      lastPort = parseInt(fs.readFileSync(portFile, "utf8"), 10) || 0;
+    } catch {
+      // first launch: no port persisted yet, use an ephemeral one
+    }
+    const listenOn = (port) =>
+      new Promise((resolve, reject) => {
+        httpServer.once("error", reject);
+        httpServer.listen(port || 0, process.env.HOST, resolve);
+      });
+    try {
+      await listenOn(lastPort);
+    } catch (err) {
+      if (err.code !== "EADDRINUSE") throw err;
+      await listenOn(0);
+    }
+    const port = httpServer.address().port;
+    if (port !== lastPort) {
+      fs.writeFileSync(portFile, String(port));
+    }
+
+    // The renderer needs the URL, so resolve it from the OS-assigned port.
+    appUrl = `http://127.0.0.1:${port}`;
 
     createMainWindow();
 
