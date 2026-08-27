@@ -1,6 +1,6 @@
 // Local desktop wrapper. Boots the existing dungeon-revealer server in-process
 // and opens two windows: the DM window and the fullscreen player window.
-// ponytail: no packaging/installer yet (no electron-builder); run via `npm run start:desktop`. Add electron-builder when a distributable is needed.
+// ponytail: Linux ships as AppImage via electron-builder (see electron-builder.yml, .github/workflows/release-build.yml); win/mac still use electron-packager folders.
 // ponytail: the server listens on an ephemeral 127.0.0.1 port per launch, so no fixed port is exposed and browsers can't reach it. The socket must stay: Electron's renderer talks to the in-process server over HTTP/WebSocket.
 const { app, BrowserWindow, ipcMain, screen } = require("electron");
 const path = require("path");
@@ -20,7 +20,7 @@ if (!app.requestSingleInstanceLock()) {
     mainWindow = new BrowserWindow({
       width: 1400,
       height: 900,
-      autoHideMenuBar: true,
+      icon: path.join(__dirname, "..", "build", "images", "icons", "android-chrome-512x512.png"),
       webPreferences: {
         preload: path.join(__dirname, "preload.cjs"),
         contextIsolation: true,
@@ -47,6 +47,7 @@ if (!app.requestSingleInstanceLock()) {
       y: display.bounds.y,
       fullscreen: true,
       frame: false,
+      icon: path.join(__dirname, "..", "build", "images", "icons", "android-chrome-512x512.png"),
       webPreferences: {
         preload: path.join(__dirname, "preload.cjs"),
         contextIsolation: true,
