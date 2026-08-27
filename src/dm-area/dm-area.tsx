@@ -20,7 +20,7 @@ import { AccessTokenProvider } from "../hooks/use-access-token";
 import { usePersistedState } from "../hooks/use-persisted-state";
 import { DmMap, DMMapFragment } from "./dm-map";
 import { PlayerMapView } from "../player-area";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Socket } from "socket.io-client";
 import type { mapView_MapFragment$key } from "../__generated__/mapView_MapFragment.graphql";
 import { MapTokenEntity } from "../map-typings";
@@ -138,9 +138,27 @@ const ViewModePill = styled(motion.div)`
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
 `;
 
-const ViewFade = styled(motion.div)`
+const ViewStack = styled.div`
+  position: relative;
   height: 100%;
+`;
+
+// Both views stay mounted so each keeps its state (camera, tool, brush) and no
+// WebGL context is torn down/recreated on switch (the old unmount caused the
+// white flash). visibility:hidden (delayed until the fade ends) also kills
+// pointer events on the hidden subtree — the DM toolbars use pointer-events:
+// all, so opacity alone would leave invisible buttons clickable.
+// ponytail: hidden R3F canvas keeps rendering; if GPU matters, pause the
+// hidden canvas via Canvas `frameloop` (e.g. "never" when opacity is 0).
+const ViewFade = styled.div<{ isActive: boolean }>`
+  position: absolute;
+  inset: 0;
   background-color: black;
+  opacity: ${(p) => (p.isActive ? 1 : 0)};
+  visibility: ${(p) => (p.isActive ? "visible" : "hidden")};
+  pointer-events: ${(p) => (p.isActive ? "auto" : "none")};
+  transition: opacity 0.15s ease,
+    visibility 0s linear ${(p) => (p.isActive ? "0s" : "0.15s")};
 `;
 
 const DmAreaTokenAddManyMutation = graphql`
@@ -382,228 +400,210 @@ const Content = ({
           </ViewModeButton>
         ))}
       </ViewModeTab>
-      <AnimatePresence exitBeforeEnter>
-        {viewMode === "player" ? (
-          <ViewFade
-            key="player"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-          >
-            <PlayerMapView
-              map={mirrorMap}
-              mapId={mirrorMapId}
-              fetch={localFetch}
-              socket={socket}
-              isMapOnly={false}
+      <ViewStack>
+        <ViewFade isActive={viewMode === "player"}>
+          <PlayerMapView
+            map={mirrorMap}
+            mapId={mirrorMapId}
+            fetch={localFetch}
+            socket={socket}
+            isMapOnly={false}
+          />
+        </ViewFade>
+        <ViewFade isActive={viewMode === "dm"}>
+          {(dmAreaResponse.error === null &&
+            // because it is a live query isLoading is always true
+            // thanks relay :D
+            // so we wanna show the map library if the data is loaded aka data is not undefined but data.map is undefined :D
+            dmAreaResponse.data &&
+            !dmAreaResponse.data.map) ||
+          mode.title === "SHOW_MAP_LIBRARY" ? (
+            <SelectMapModal
+              canClose={dmAreaResponse.data?.map != null}
+              loadedMapId={loadedMapId}
+              liveMapId={dmAreaResponse.data?.map?.id ?? null}
+              closeModal={() => {
+                setMode({ title: "EDIT_MAP" });
+              }}
+              setLoadedMapId={(loadedMapId) => {
+                setMode({ title: "EDIT_MAP" });
+                setLoadedMapId(loadedMapId);
+              }}
             />
-          </ViewFade>
-        ) : (
-          <ViewFade
-            key="dm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-          >
-            {(dmAreaResponse.error === null &&
-              // because it is a live query isLoading is always true
-              // thanks relay :D
-              // so we wanna show the map library if the data is loaded aka data is not undefined but data.map is undefined :D
-              dmAreaResponse.data &&
-              !dmAreaResponse.data.map) ||
-            mode.title === "SHOW_MAP_LIBRARY" ? (
-              <SelectMapModal
-                canClose={dmAreaResponse.data?.map !== null}
-                loadedMapId={loadedMapId}
-                liveMapId={dmAreaResponse.data?.map?.id ?? null}
-                closeModal={() => {
-                  setMode({ title: "EDIT_MAP" });
-                }}
-                setLoadedMapId={(loadedMapId) => {
-                  setMode({ title: "EDIT_MAP" });
-                  setLoadedMapId(loadedMapId);
-                }}
-              />
-            ) : null}
-            {mode.title === "MEDIA_LIBRARY" ? (
-              <MediaLibrary
-                onClose={() => {
-                  setMode({ title: "EDIT_MAP" });
-                }}
-              />
-            ) : null}
-            {dmAreaResponse.data?.map != null ? (
-              <LoadedMapDiv
-                onDragEnter={(ev) => {
-                  if (isFileDrag(ev) === false) {
-                    return;
-                  }
-                  ev.dataTransfer.dropEffect = "copy";
-                  dragRef.current++;
-                  setIsDraggingFile(dragRef.current !== 0);
-                  ev.preventDefault();
-                }}
-                onDragLeave={(ev) => {
-                  if (isFileDrag(ev) === false) {
-                    return;
-                  }
-                  dragRef.current--;
-                  setIsDraggingFile(dragRef.current !== 0);
-                  ev.preventDefault();
-                }}
-                onDragOver={(ev) => {
-                  if (isFileDrag(ev) === false) {
-                    return;
-                  }
-                  ev.preventDefault();
-                }}
-                onDrop={(ev) => {
-                  ev.preventDefault();
-                  if (isFileDrag(ev) === false) {
-                    return;
-                  }
-                  dragRef.current = 0;
-                  setIsDraggingFile(dragRef.current !== 0);
+          ) : null}
+          {mode.title === "MEDIA_LIBRARY" ? (
+            <MediaLibrary
+              onClose={() => {
+                setMode({ title: "EDIT_MAP" });
+              }}
+            />
+          ) : null}
+          {dmAreaResponse.data?.map != null ? (
+            <LoadedMapDiv
+              onDragEnter={(ev) => {
+                if (isFileDrag(ev) === false) {
+                  return;
+                }
+                ev.dataTransfer.dropEffect = "copy";
+                dragRef.current++;
+                setIsDraggingFile(dragRef.current !== 0);
+                ev.preventDefault();
+              }}
+              onDragLeave={(ev) => {
+                if (isFileDrag(ev) === false) {
+                  return;
+                }
+                dragRef.current--;
+                setIsDraggingFile(dragRef.current !== 0);
+                ev.preventDefault();
+              }}
+              onDragOver={(ev) => {
+                if (isFileDrag(ev) === false) {
+                  return;
+                }
+                ev.preventDefault();
+              }}
+              onDrop={(ev) => {
+                ev.preventDefault();
+                if (isFileDrag(ev) === false) {
+                  return;
+                }
+                dragRef.current = 0;
+                setIsDraggingFile(dragRef.current !== 0);
 
-                  const [file] = Array.from(ev.dataTransfer.files);
+                const [file] = Array.from(ev.dataTransfer.files);
 
-                  if (!file?.type.match(/image/)) {
-                    return;
-                  }
-                  const context = controlRef.current?.getContext();
+                if (!file?.type.match(/image/)) {
+                  return;
+                }
+                const context = controlRef.current?.getContext();
 
-                  if (!context) {
-                    return;
-                  }
-                  const coords = context.helper.coordinates.screenToImage([
-                    ev.clientX,
-                    ev.clientY,
-                  ]);
+                if (!context) {
+                  return;
+                }
+                const coords = context.helper.coordinates.screenToImage([
+                  ev.clientX,
+                  ev.clientY,
+                ]);
 
-                  const addTokenWithImageId = (tokenImageId: string) => {
-                    commitMutation<dmAreaTokenAddManyMutation>(
-                      relayEnvironment,
-                      {
-                        mutation: DmAreaTokenAddManyMutation,
-                        variables: {
-                          input: {
-                            mapId: dmAreaResponse.data!.map!.id,
-                            tokens: [
-                              {
-                                color: "red",
-                                x: coords[0],
-                                y: coords[1],
-                                rotation: 0,
-                                isVisibleForPlayers: false,
-                                isMovableByPlayers: false,
-                                isLocked: false,
-                                tokenImageId,
-                                label: "",
-                              },
-                            ],
+                const addTokenWithImageId = (tokenImageId: string) => {
+                  commitMutation<dmAreaTokenAddManyMutation>(relayEnvironment, {
+                    mutation: DmAreaTokenAddManyMutation,
+                    variables: {
+                      input: {
+                        mapId: dmAreaResponse.data!.map!.id,
+                        tokens: [
+                          {
+                            color: "red",
+                            x: coords[0],
+                            y: coords[1],
+                            rotation: 0,
+                            isVisibleForPlayers: false,
+                            isMovableByPlayers: false,
+                            isLocked: false,
+                            tokenImageId,
+                            label: "",
                           },
-                        },
-                      }
-                    );
-                  };
-
-                  selectFile(file, [], ({ tokenImageId }) => {
-                    addTokenWithImageId(tokenImageId);
+                        ],
+                      },
+                    },
                   });
+                };
+
+                selectFile(file, [], ({ tokenImageId }) => {
+                  addTokenWithImageId(tokenImageId);
+                });
+              }}
+            >
+              {cropperNode}
+              {isDraggingFile ? (
+                <Center
+                  position="absolute"
+                  top="0"
+                  width="100%"
+                  zIndex={99999999}
+                  justifyContent="center"
+                >
+                  <DropZone
+                    onDragEnter={(ev) => {
+                      if (isFileDrag(ev) === false) {
+                        return;
+                      }
+                      ev.dataTransfer.dropEffect = "copy";
+                      dragRef.current++;
+                      setIsDraggingFile(dragRef.current !== 0);
+                      ev.preventDefault();
+                    }}
+                    onDragLeave={(ev) => {
+                      if (isFileDrag(ev) === false) {
+                        return;
+                      }
+                      dragRef.current--;
+                      setIsDraggingFile(dragRef.current !== 0);
+                      ev.preventDefault();
+                    }}
+                    onDragOver={(ev) => {
+                      if (isFileDrag(ev) === false) {
+                        return;
+                      }
+                      ev.preventDefault();
+                    }}
+                    onDrop={(ev) => {
+                      ev.preventDefault();
+                      if (isFileDrag(ev) === false) {
+                        return;
+                      }
+
+                      dragRef.current = 0;
+                      setIsDraggingFile(dragRef.current !== 0);
+
+                      ev.stopPropagation();
+                      const [file] = Array.from(ev.dataTransfer.files);
+                      if (file) {
+                        setImportModalFile(file);
+                      }
+                    }}
+                  >
+                    Import Map or Media Library Item
+                  </DropZone>
+                </Center>
+              ) : null}
+              <div
+                style={{
+                  flex: 1,
+                  position: "relative",
+                  overflow: "hidden",
                 }}
               >
-                {cropperNode}
-                {isDraggingFile ? (
-                  <Center
-                    position="absolute"
-                    top="0"
-                    width="100%"
-                    zIndex={99999999}
-                    justifyContent="center"
-                  >
-                    <DropZone
-                      onDragEnter={(ev) => {
-                        if (isFileDrag(ev) === false) {
-                          return;
-                        }
-                        ev.dataTransfer.dropEffect = "copy";
-                        dragRef.current++;
-                        setIsDraggingFile(dragRef.current !== 0);
-                        ev.preventDefault();
-                      }}
-                      onDragLeave={(ev) => {
-                        if (isFileDrag(ev) === false) {
-                          return;
-                        }
-                        dragRef.current--;
-                        setIsDraggingFile(dragRef.current !== 0);
-                        ev.preventDefault();
-                      }}
-                      onDragOver={(ev) => {
-                        if (isFileDrag(ev) === false) {
-                          return;
-                        }
-                        ev.preventDefault();
-                      }}
-                      onDrop={(ev) => {
-                        ev.preventDefault();
-                        if (isFileDrag(ev) === false) {
-                          return;
-                        }
-
-                        dragRef.current = 0;
-                        setIsDraggingFile(dragRef.current !== 0);
-
-                        ev.stopPropagation();
-                        const [file] = Array.from(ev.dataTransfer.files);
-                        if (file) {
-                          setImportModalFile(file);
-                        }
-                      }}
-                    >
-                      Import Map or Media Library Item
-                    </DropZone>
-                  </Center>
-                ) : null}
-                <div
-                  style={{
-                    flex: 1,
-                    position: "relative",
-                    overflow: "hidden",
+                <DmMap
+                  controlRef={controlRef}
+                  password={dmPassword}
+                  map={dmAreaResponse.data.map}
+                  isSharing={isSharing}
+                  setIsSharing={setIsSharing}
+                  sendLiveMap={sendLiveMap}
+                  saveFogProgress={saveFogProgress}
+                  hideMap={hideMap}
+                  showMapModal={showMapModal}
+                  openNotes={() => {
+                    actions.showNoteInWindow(null, "note-editor", true);
                   }}
-                >
-                  <DmMap
-                    controlRef={controlRef}
-                    password={dmPassword}
-                    map={dmAreaResponse.data.map}
-                    isSharing={isSharing}
-                    setIsSharing={setIsSharing}
-                    sendLiveMap={sendLiveMap}
-                    saveFogProgress={saveFogProgress}
-                    hideMap={hideMap}
-                    showMapModal={showMapModal}
-                    openNotes={() => {
-                      actions.showNoteInWindow(null, "note-editor", true);
-                    }}
-                    openMediaLibrary={() => {
-                      setMode({ title: "MEDIA_LIBRARY" });
-                    }}
-                    updateToken={updateToken}
-                  />
-                </div>
-              </LoadedMapDiv>
-            ) : null}
-            {importModalFile ? (
-              <ImportFileModal
-                file={importModalFile}
-                close={() => setImportModalFile(null)}
-              />
-            ) : null}
-          </ViewFade>
-        )}
-      </AnimatePresence>
+                  openMediaLibrary={() => {
+                    setMode({ title: "MEDIA_LIBRARY" });
+                  }}
+                  updateToken={updateToken}
+                />
+              </div>
+            </LoadedMapDiv>
+          ) : null}
+          {importModalFile ? (
+            <ImportFileModal
+              file={importModalFile}
+              close={() => setImportModalFile(null)}
+            />
+          ) : null}
+        </ViewFade>
+      </ViewStack>
     </FetchContext.Provider>
   );
 };

@@ -60,13 +60,17 @@ const ChatWindow = styled.div`
 `;
 
 const ChatHeader = styled.div`
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-bottom: 8px;
 `;
 
 const ChatTitle = styled.span`
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   font-weight: 700;
   font-size: 13px;
   color: rgb(62, 76, 88);

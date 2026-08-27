@@ -4,7 +4,6 @@ import styled from "@emotion/styled/macro";
 import { useSoundSettings } from "../sound-settings";
 
 const LabelText = styled.div`
-  text-transform: uppercase;
   font-weight: bold;
   color: rgb(62, 76, 88);
   letter-spacing: 1px;

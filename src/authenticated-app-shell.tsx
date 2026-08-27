@@ -22,19 +22,8 @@ import { useWindowDimensions } from "./hooks/use-window-dimensions";
 import { SplashShareImage } from "./splash-share-image";
 import { usePersistedState } from "./hooks/use-persisted-state";
 
-const useShowChatState = () =>
-  usePersistedState<"show" | "hidden">("chat.state", {
-    encode: (value) => value,
-    decode: (value) => {
-      if (
-        typeof value !== "string" ||
-        ["show", "hidden"].includes(value) === false
-      ) {
-        return "show";
-      }
-      return value as "show" | "hidden";
-    },
-  });
+// Logs panel always starts hidden; the DM opens it with the toggle button.
+const useShowChatState = () => React.useState<"show" | "hidden">("hidden");
 
 const useShowDiceRollNotesState = () =>
   usePersistedState<"show" | "hidden">("chat.showDiceRollNotes", {

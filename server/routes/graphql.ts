@@ -53,10 +53,9 @@ export default ({
   const chat = createChat({ pubSub });
 
   const user = createUser({
-    sendUserConnectedMessage: ({ name }) =>
-      chat.addOperationalMessage({ content: `**${name}** connected.` }),
-    sendUserDisconnectedMessage: ({ name }) =>
-      chat.addOperationalMessage({ content: `**${name}** disconnected.` }),
+    // Desktop local app: no "player connected" noise in the log.
+    sendUserConnectedMessage: () => {},
+    sendUserDisconnectedMessage: () => {},
     pubSub,
   });
 
