@@ -8,7 +8,6 @@ import { ChatSettings } from "./chat-settings";
 import { chatSubscription } from "./__generated__/chatSubscription.graphql";
 import { chatQuery } from "./__generated__/chatQuery.graphql";
 import * as Button from "../button";
-import * as HorizontalNavigation from "../horizontal-navigation";
 
 import * as Icon from "../feather-icons";
 import useSound from "use-sound";
@@ -16,7 +15,7 @@ import diceRollSound from "./dice-roll.mp3";
 import notificationSound from "./notification.mp3";
 
 import styled from "@emotion/styled/macro";
-import { ChatTextArea } from "./chat-textarea";
+import { DiceRoller } from "./dice-roller";
 import { chatMessageSoundSubscription } from "./__generated__/chatMessageSoundSubscription.graphql";
 import { useSoundSettings } from "../sound-settings";
 import { useStaticRef } from "../hooks/use-static-ref";
@@ -48,10 +47,6 @@ const ChatMessageSoundSubscription = graphql`
 const ChatQuery = graphql`
   query chatQuery {
     ...chatMessages_chat
-    me {
-      id
-      ...chatSettings_data
-    }
   }
 `;
 
@@ -62,6 +57,37 @@ const ChatWindow = styled.div`
   height: 100%;
   display: flex;
   flex-direction: column;
+`;
+
+const ChatHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+`;
+
+const ChatTitle = styled.span`
+  font-weight: 700;
+  font-size: 13px;
+  color: rgb(62, 76, 88);
+  letter-spacing: 0.5px;
+`;
+
+const SettingsButton = styled.button<{ isActive: boolean }>`
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid ${(p) => (p.isActive ? "#044e54" : "rgb(203, 210, 217)")};
+  background-color: ${(p) => (p.isActive ? "#044e54" : "#fff")};
+  color: ${(p) => (p.isActive ? "#fff" : "rgb(62, 76, 88)")};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  &:hover {
+    background-color: ${(p) => (p.isActive ? "#044e54" : "#f0f4f8")};
+  }
 `;
 
 export const useChatSoundsAndUnreadCount = (
@@ -187,31 +213,19 @@ export const Chat: React.FC<{
         ev.stopPropagation();
       }}
     >
-      <HorizontalNavigation.Group>
-        <HorizontalNavigation.Button
-          small
-          isActive={mode === "chat"}
-          fullWidth
-          onClick={() => setMode("chat")}
-        >
-          <Icon.MessageCircle boxSize="12px" />
-          <span>Chat</span>
-        </HorizontalNavigation.Button>
-        <HorizontalNavigation.Button
-          small
+      <ChatHeader>
+        <ChatTitle>Logs</ChatTitle>
+        <SettingsButton
           isActive={mode === "settings"}
-          fullWidth
-          onClick={() => setMode("settings")}
+          onClick={() => setMode(mode === "settings" ? "chat" : "settings")}
         >
-          <Icon.Settings boxSize="12px" />
-          <span>Settings</span>
-        </HorizontalNavigation.Button>
-      </HorizontalNavigation.Group>
-      <div style={{ height: 8 }} />
+          <Icon.Settings boxSize="16px" />
+        </SettingsButton>
+      </ChatHeader>
       {mode === "chat" ? (
         <Stack height="100%">
           <ChatMessages chat={data} />
-          <ChatTextArea />
+          <DiceRoller />
           <Button.Tertiary
             small
             onClick={toggleShowDiceRollNotes}
@@ -222,7 +236,7 @@ export const Chat: React.FC<{
         </Stack>
       ) : mode === "settings" ? (
         <div style={{ marginTop: 16 }}>
-          <ChatSettings data={data.me} />
+          <ChatSettings />
         </div>
       ) : null}
     </ChatWindow>

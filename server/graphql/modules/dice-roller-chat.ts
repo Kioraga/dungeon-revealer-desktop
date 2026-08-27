@@ -515,17 +515,9 @@ export const mutationFields = [
       input: t.arg(t.NonNullInput(GraphQLChatMessageCreateInputType)),
     },
     resolve: (_, args, context) => {
-      const user = context.user.get(context.session.id);
-      if (!user) {
-        return {
-          type: "error" as const,
-          error: {
-            reason: "Not authenticated.",
-          },
-        };
-      }
       const addMessageResult = context.chat.addUserMessage({
-        authorName: user.name,
+        // Local desktop app: the only author is the DM.
+        authorName: "Dungeon Master",
         rawContent: args.input.rawContent,
         variables: args.input.variables ? JSON.parse(args.input.variables) : {},
       });

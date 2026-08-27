@@ -1,14 +1,6 @@
 import * as React from "react";
-import { createFragmentContainer } from "react-relay";
-import graphql from "babel-plugin-relay/macro";
-import { chatSettings_data } from "./__generated__/chatSettings_data.graphql";
-import { Input } from "../input";
-import * as Button from "../button";
-import * as HorizontalNavigation from "../horizontal-navigation";
-import { useResetState } from "../hooks/use-reset-state";
-import { useChangeNameMutation } from "./change-name-mutation";
+import { FormControl, FormLabel, Switch } from "@chakra-ui/react";
 import styled from "@emotion/styled/macro";
-import * as Icon from "../feather-icons";
 import { useSoundSettings } from "../sound-settings";
 
 const LabelText = styled.div`
@@ -19,68 +11,30 @@ const LabelText = styled.div`
   padding-bottom: 8px;
 `;
 
-const ChatSettingsRenderer: React.FC<{ data: chatSettings_data }> = ({
-  data,
-}) => {
-  const [name, setValue] = useResetState(data.name, [data.name]);
-  const changeName = useChangeNameMutation();
+// Local desktop app: the DM nickname is fixed. Only the dice sound is configurable.
+export const ChatSettings: React.FC<{}> = () => {
   const soundSettings = useSoundSettings();
+  const diceSoundEnabled = soundSettings.value !== "none";
 
   return (
     <>
-      <label>
-        <LabelText>Name</LabelText>
-        <Input
-          value={name}
-          onChange={(ev) => {
-            setValue(ev.target.value);
-          }}
-        />
-      </label>
-      <Button.Primary
-        onClick={() => changeName({ name })}
-        small
-        style={{ marginTop: 8, marginLeft: "auto" }}
+      <FormControl
+        display="flex"
+        alignItems="center"
+        justifyContent="space-between"
       >
-        <Icon.Check boxSize="16px" />
-        <span>Save</span>
-      </Button.Primary>
-      <div style={{ height: 24 }} />
-      <label>
-        <LabelText>Chat Sound</LabelText>
-        <HorizontalNavigation.Group>
-          <HorizontalNavigation.Button
-            small
-            isActive={soundSettings.value === "all"}
-            onClick={() => soundSettings.setValue("all")}
-          >
-            All
-          </HorizontalNavigation.Button>
-          <HorizontalNavigation.Button
-            small
-            isActive={soundSettings.value === "dice-only"}
-            onClick={() => soundSettings.setValue("dice-only")}
-          >
-            Dice only
-          </HorizontalNavigation.Button>
-          <HorizontalNavigation.Button
-            small
-            isActive={soundSettings.value === "none"}
-            onClick={() => soundSettings.setValue("none")}
-          >
-            None
-          </HorizontalNavigation.Button>
-        </HorizontalNavigation.Group>
-      </label>
+        <FormLabel htmlFor="dice-sound-toggle" mb="0">
+          <LabelText>Dice Sound</LabelText>
+        </FormLabel>
+        <Switch
+          id="dice-sound-toggle"
+          size="lg"
+          isChecked={diceSoundEnabled}
+          onChange={(ev) =>
+            soundSettings.setValue(ev.target.checked ? "dice-only" : "none")
+          }
+        />
+      </FormControl>
     </>
   );
 };
-
-export const ChatSettings = createFragmentContainer(ChatSettingsRenderer, {
-  data: graphql`
-    fragment chatSettings_data on User {
-      id
-      name
-    }
-  `,
-});
