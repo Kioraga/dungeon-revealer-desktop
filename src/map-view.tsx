@@ -1461,7 +1461,7 @@ const MapViewRenderer = (props: {
 
   const isAltPressed = useIsKeyPressed("Alt");
 
-  const { size, raycaster, scene, camera } = useThree();
+  const { size, raycaster, scene, camera, gl } = useThree();
 
   const planeRef = React.useRef<THREE.Mesh | null>(null);
 
@@ -1520,6 +1520,7 @@ const MapViewRenderer = (props: {
       mapCanvas,
       fogCanvas,
       fogTexture,
+      canvas: gl.domElement,
       mapState: spring,
       setMapState: set,
       dimensions,
@@ -1567,6 +1568,7 @@ const MapViewRenderer = (props: {
     isAltPressed,
     raycaster,
     scene,
+    gl,
   ]);
 
   React.useEffect(() => {

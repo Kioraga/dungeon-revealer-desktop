@@ -12,6 +12,8 @@ export type SharedMapToolState = {
   mapImage: HTMLImageElement;
   mapCanvas: HTMLCanvasElement;
   fogCanvas: HTMLCanvasElement;
+  /* The WebGL canvas this view renders into (identifies this view's own events). */
+  canvas: HTMLCanvasElement;
   fogTexture: THREE.CanvasTexture;
   mapState: {
     position: SpringValue<Vector3D>;

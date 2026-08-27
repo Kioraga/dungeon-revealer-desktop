@@ -53,7 +53,7 @@ export const usePinchWheelZoom = (mapToolState: SharedMapToolState) => {
   useGesture(
     {
       onWheel: ({ event }) => {
-        if (event.target instanceof HTMLCanvasElement === false) {
+        if (event.target !== mapToolState.canvas) {
           return;
         }
         event.preventDefault();
@@ -66,7 +66,7 @@ export const usePinchWheelZoom = (mapToolState: SharedMapToolState) => {
         updateZoom({ pinchDelta, pinchScale, origin });
       },
       onPinch: ({ movement, event, origin, last, cancel }) => {
-        if (event.target instanceof HTMLCanvasElement === false) {
+        if (event.target !== mapToolState.canvas) {
           return;
         }
         event.preventDefault();
@@ -96,7 +96,7 @@ export const usePinchWheelZoom = (mapToolState: SharedMapToolState) => {
         }, 100);
       },
       onPointerDown: ({ event }) => {
-        if (event.target instanceof HTMLCanvasElement) {
+        if (event.target === mapToolState.canvas) {
           window.document.body.classList.add("user-select-disabled");
           const onUnmount = () => {
             window.document.body.classList.remove("user-select-disabled");
