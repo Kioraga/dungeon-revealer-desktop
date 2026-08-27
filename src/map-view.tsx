@@ -145,6 +145,7 @@ const TokenListRendererFragment = graphql`
   fragment mapView_TokenListRendererFragment on Map {
     tokens {
       id
+      isVisibleForPlayers
       ...mapView_TokenRendererMapTokenFragment
     }
     grid {
@@ -157,9 +158,15 @@ const TokenListRenderer = (props: {
   map: mapView_TokenListRendererFragment$key;
 }) => {
   const map = useFragment(TokenListRendererFragment, props.map);
+  // Player views (mirror + projector) must only show tokens that are visible
+  // to players. The DM view keeps all tokens (hidden ones render dimmed).
+  const isDungeonMaster = React.useContext(IsDungeonMasterContext);
+  const visibleTokens = isDungeonMaster
+    ? map.tokens
+    : map.tokens.filter((token) => token.isVisibleForPlayers);
   return (
     <group renderOrder={LayerRenderOrder.token}>
-      {map.tokens.map((token) => (
+      {visibleTokens.map((token) => (
         <TokenRenderer
           id={token.id}
           key={token.id}
