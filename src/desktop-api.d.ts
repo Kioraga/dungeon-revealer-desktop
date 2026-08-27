@@ -2,6 +2,7 @@
 export type DesktopDisplay = {
   id: number;
   label: string;
+  name: string | null;
   bounds: { x: number; y: number; width: number; height: number };
   isPrimary: boolean;
 };

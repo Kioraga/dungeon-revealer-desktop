@@ -650,6 +650,21 @@ export const DmMap = (props: {
       typeof value === "string" && value !== "" ? value : null,
   });
 
+  // Always have a display selected: default to the primary one when nothing
+  // has been persisted yet.
+  React.useEffect(() => {
+    if (selectedDisplayId !== null || !window.desktopApi) return;
+    window.desktopApi
+      .listDisplays()
+      .then((displays) => {
+        const primary = displays.find((d) => d.isPrimary) ?? displays[0];
+        if (primary) {
+          setSelectedDisplayId(String(primary.id));
+        }
+      })
+      .catch(() => {});
+  }, [selectedDisplayId, setSelectedDisplayId]);
+
   const showToast = useToast();
   const asyncClipBoardApi = useAsyncClipboardApi();
 
@@ -775,8 +790,10 @@ export const DmMap = (props: {
           BrushToolContextProvider,
           {
             onDrawEnd: (canvas) => {
-              // TODO: toggle between instant send and incremental send
+              // Instant reveal: push the live fog on every stroke so the
+              // player view (mirror + projector) updates without re-sharing.
               props.saveFogProgress(canvas);
+              props.sendLiveMap(canvas);
             },
           },
         ] as ComponentWithPropsTuple<
@@ -879,6 +896,7 @@ export const DmMap = (props: {
                           );
                           context.fogTexture.needsUpdate = true;
                           props.saveFogProgress(context.fogCanvas);
+                          props.sendLiveMap(context.fogCanvas);
                         },
                       })
                     }
@@ -909,6 +927,7 @@ export const DmMap = (props: {
                           );
                           context.fogTexture.needsUpdate = true;
                           props.saveFogProgress(context.fogCanvas);
+                          props.sendLiveMap(context.fogCanvas);
                         },
                       })
                     }
@@ -985,7 +1004,9 @@ export const DmMap = (props: {
                     }}
                   >
                     {isSharing ? (
-                      <Icon.Pause stroke="hsl(360, 83%, 62%)" boxSize="20px" />
+                      <RedStopIcon>
+                        <Icon.Pause boxSize="20px" />
+                      </RedStopIcon>
                     ) : (
                       <Icon.Send boxSize="20px" />
                     )}
@@ -1019,7 +1040,6 @@ export const DmMap = (props: {
                         onSelect={(id) => {
                           setSelectedDisplayId(id);
                           window.desktopApi?.setPlayerDisplay(id);
-                          setShowDisplaySettings(false);
                         }}
                         close={() => setShowDisplaySettings(false)}
                       />
@@ -1074,7 +1094,7 @@ const DisplaySettingsPopup = ({
 
   return (
     <Toolbar.Popup>
-      <div ref={ref} style={{ padding: 12, minWidth: 260 }}>
+      <div ref={ref} style={{ padding: 12, width: "max-content" }}>
         <Heading size="xs" marginBottom="2">
           Player Screen
         </Heading>
@@ -1088,7 +1108,7 @@ const DisplaySettingsPopup = ({
                 isActive={String(display.id) === selectedId}
                 onClick={() => onSelect(String(display.id))}
               >
-                {display.label || `Display ${display.id}`}
+                {display.name ?? display.label ?? `Display ${display.id}`}
                 {display.isPrimary ? " ★" : ""}
               </ScreenButton>
             ))}
@@ -1101,13 +1121,22 @@ const DisplaySettingsPopup = ({
 
 const ScreenButtonRow = styled.div`
   display: flex;
-  flex-wrap: wrap;
+  width: max-content;
   gap: 6px;
 `;
 
+// The ToolbarItem CSS forces `svg { stroke: <dark> }`, which overrides the
+// icon's own stroke attribute. !important wins over that rule.
+const RedStopIcon = styled.span`
+  display: flex;
+  svg {
+    stroke: hsl(360, 83%, 62%) !important;
+  }
+`;
+
 const ScreenButton = styled.button<{ isActive: boolean }>`
-  flex: 1;
-  min-width: 90px;
+  width: 130px;
+  min-height: 34px;
   border: 1px solid rgb(203, 210, 217);
   border-radius: 6px;
   background-color: ${(p) => (p.isActive ? "#044e54" : "#fff")};
@@ -1116,7 +1145,9 @@ const ScreenButton = styled.button<{ isActive: boolean }>`
   font-weight: 600;
   padding: 8px 10px;
   cursor: pointer;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.3;
   &:hover {
     background-color: ${(p) => (p.isActive ? "#044e54" : "#f0f4f8")};
   }

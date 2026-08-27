@@ -65,15 +65,58 @@ if (!app.requestSingleInstanceLock()) {
     playerWindow = null;
   };
 
+  // Real monitor names on Wayland: Electron's display.label is empty on Linux.
+  // Query wayland-info (xdg_output name + description) and pair by position.
+  // ponytail: Wayland + wayland-info only; X11 and missing binaries fall back
+  // to Display N. Add an xrandr/EDID path if needed elsewhere.
+  const getWaylandOutputs = async () => {
+    if (!process.env.WAYLAND_DISPLAY) return null;
+    try {
+      const { execFile } = require("child_process");
+      const { promisify } = require("util");
+      const { stdout } = await promisify(execFile)("wayland-info", {
+        timeout: 3000,
+      });
+      const outputs = [];
+      for (const block of stdout.split("\txdg_output_v1").slice(1)) {
+        const name = /name: '([^']+)'/.exec(block)?.[1];
+        const desc = /description: '([^']+)'/.exec(block)?.[1];
+        const pos = /logical_x: (-?\d+), logical_y: (-?\d+)/.exec(block);
+        if (!name || !pos) continue;
+        outputs.push({ name, desc: desc || null, x: +pos[1], y: +pos[2] });
+      }
+      return outputs;
+    } catch {
+      return null;
+    }
+  };
+
   app.whenReady().then(async () => {
-    ipcMain.handle("displays:list", () =>
-      screen.getAllDisplays().map(({ id, label, bounds, isPrimary }) => ({
-        id,
-        label,
-        bounds,
-        isPrimary,
-      }))
-    );
+    ipcMain.handle("displays:list", async () => {
+      const displays = screen.getAllDisplays().map(
+        ({ id, label, bounds, isPrimary }) => ({
+          id,
+          label,
+          bounds,
+          isPrimary,
+        })
+      );
+      const outputs = await getWaylandOutputs();
+      return displays.map((d) => {
+        let name = d.label || null;
+        if (!name && outputs) {
+          const match =
+            outputs.find((o) => o.x === d.bounds.x && o.y === d.bounds.y) ||
+            outputs.find(
+              (o) =>
+                Math.abs(o.x - d.bounds.x) <= 2 &&
+                Math.abs(o.y - d.bounds.y) <= 2
+            );
+          name = match ? (match.desc || match.name) : null;
+        }
+        return { ...d, name };
+      });
+    });
     ipcMain.handle("player-window:open", (_, displayId) =>
       openPlayerWindow(displayId)
     );
