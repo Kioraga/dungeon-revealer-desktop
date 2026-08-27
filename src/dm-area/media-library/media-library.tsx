@@ -9,7 +9,6 @@ import { useGetIsMounted } from "../../hooks/use-get-is-mounted";
 import { useInvokeOnScrollEnd } from "../../hooks/use-invoke-on-scroll-end";
 import styled from "@emotion/styled/macro";
 import { ImageLightBoxModal } from "../../image-lightbox-modal";
-import { useShareImageAction } from "../../hooks/use-share-image-action";
 import { useSplashShareImageAction } from "../../hooks/use-splash-share-image-action";
 import { InputGroup } from "../../input";
 import { useSelectFileDialog } from "../../hooks/use-select-file-dialog";
@@ -337,7 +336,6 @@ const Item: React.FC<{
 }> = ({ item, deleteItem, updateItem }) => {
   const [showLightboxImage, setShowLightBoxImage] = React.useState(false);
   const [showEditModal, setShowEditModal] = React.useState(false);
-  const shareImage = useShareImageAction();
   const splashShareImage = useSplashShareImageAction();
 
   return (
@@ -362,14 +360,6 @@ const Item: React.FC<{
           onClick={() => splashShareImage(item.id)}
         >
           <Icon.Share boxSize="16px" />
-        </Button.Primary>
-        <Button.Primary
-          small
-          title="Share To Chat"
-          iconOnly
-          onClick={() => shareImage(item.id)}
-        >
-          <Icon.MessageCircle boxSize="16px" />
         </Button.Primary>
         <Button.Primary
           small
