@@ -1,0 +1,16 @@
+appId: io.github.dungeon-revealer.desktop
+productName: Dungeon Revealer
+directories:
+  output: release
+files:
+  - dist/**
+  - server-build/**
+  - electron/**
+  - '!**/*.map'
+asarUnpack:
+  - '**/*.node'
+npmRebuild: false
+linux:
+  target: AppImage
+  category: Game
+  icon: build/images/icons/android-chrome-512x512.png
