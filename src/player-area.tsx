@@ -11,7 +11,7 @@ import { buildApiUrl } from "./public-url";
 import { AuthenticatedAppShell } from "./authenticated-app-shell";
 import { useSocket } from "./socket";
 import { animated, useSpring, to } from "react-spring";
-import { MapView, MapControlInterface } from "./map-view";
+import { MapControlInterface } from "./map-view";
 import { useGesture } from "react-use-gesture";
 import { randomHash } from "./utilities/random-hash";
 import { useWindowDimensions } from "./hooks/use-window-dimensions";
@@ -22,14 +22,13 @@ import {
   FlatContextProvider,
 } from "./flat-context-provider";
 import { MarkAreaToolContext } from "./map-tools/mark-area-map-tool";
-import {
-  NoteWindowActionsContext,
-  useNoteWindowActions,
-} from "./dm-area/token-info-aside";
+import { NoteWindowActionsContext } from "./dm-area/token-info-aside";
 import { playerArea_PlayerMap_ActiveMapQuery } from "./__generated__/playerArea_PlayerMap_ActiveMapQuery.graphql";
 import { playerArea_MapPingMutation } from "./__generated__/playerArea_MapPingMutation.graphql";
 import { UpdateTokenContext } from "./update-token-context";
 import { LazyLoadedMapView } from "./lazy-loaded-map-view";
+import { IsDungeonMasterContext } from "./is-dungeon-master-context";
+import type { mapView_MapFragment$key } from "./__generated__/mapView_MapFragment.graphql";
 
 const ToolbarContainer = styled(animated.div)`
   position: absolute;
@@ -49,12 +48,6 @@ const AbsoluteFullscreenContainer = styled.div`
   height: 100%;
 `;
 
-type MarkedArea = {
-  id: string;
-  x: number;
-  y: number;
-};
-
 const createCacheBusterString = () =>
   encodeURIComponent(`${Date.now()}_${randomHash()}`);
 
@@ -73,46 +66,75 @@ const MapPingMutation = graphql`
   }
 `;
 
-export type PlayerViewCommand = "center" | "zoomIn" | "zoomOut";
-
-export const PlayerMap = ({
+export const PlayerMapView = ({
+  map,
+  mapId,
   fetch,
   socket,
   isMapOnly,
-  onCommand,
 }: {
+  map: mapView_MapFragment$key | null;
+  mapId: string | null;
   fetch: typeof window.fetch;
   socket: ReturnType<typeof useSocket>;
   isMapOnly: boolean;
-  onCommand?: (command: PlayerViewCommand) => void;
 }) => {
-  const currentMap = useQuery<playerArea_PlayerMap_ActiveMapQuery>(
-    PlayerMap_ActiveMapQuery
-  );
   const [mapPing] = useMutation<playerArea_MapPingMutation>(MapPingMutation);
 
-  const mapId = currentMap?.data?.activeMap?.id ?? null;
-  const showSplashScreen = mapId === null;
+  const showSplashScreen = map === null;
 
   const controlRef = React.useRef<MapControlInterface | null>(null);
-  const [markedAreas, setMarkedAreas] = React.useState<MarkedArea[]>(() => []);
 
-  // Apply camera commands broadcast by the DM window's mirror tab.
+  // Player window (mirror): apply camera state broadcast by the DM window.
   React.useEffect(() => {
-    const listener = (payload: { command?: PlayerViewCommand }) => {
-      const command = payload?.command;
-      if (!command) return;
-      const controls = controlRef.current?.controls;
-      if (!controls) return;
-      if (command === "center") controls.center();
-      if (command === "zoomIn") controls.zoomIn();
-      if (command === "zoomOut") controls.zoomOut();
+    if (!isMapOnly) return;
+    const listener = (payload: {
+      cx?: number;
+      cy?: number;
+      scale?: number;
+    }) => {
+      if (
+        payload?.cx == null ||
+        payload?.cy == null ||
+        payload?.scale == null
+      ) {
+        return;
+      }
+      const ctx = controlRef.current?.getContext();
+      if (!ctx) return;
+      const [tx, ty] = ctx.helper.imageCoordinatesToThreePoint([
+        payload.cx,
+        payload.cy,
+      ]);
+      ctx.setMapState({
+        position: [-tx * payload.scale, -ty * payload.scale, 0],
+        scale: [payload.scale, payload.scale, 1],
+        immediate: true,
+      });
     };
-    socket.on("viewStateCommand", listener);
+    socket.on("viewState", listener);
     return () => {
-      socket.off("viewStateCommand", listener);
+      socket.off("viewState", listener);
     };
-  }, [socket]);
+  }, [socket, isMapOnly, mapId]);
+
+  // DM window (Player tab, mirror): publish camera state so the player window follows.
+  React.useEffect(() => {
+    if (isMapOnly) return;
+    let lastKey = "";
+    const publish = () => {
+      const ctx = controlRef.current?.getContext();
+      if (!ctx) return;
+      const [sx] = ctx.mapState.scale.get();
+      const [cx, cy] = ctx.helper.threePointToImageCoordinates([0, 0]);
+      const key = `${sx.toFixed(4)},${cx.toFixed(2)},${cy.toFixed(2)}`;
+      if (key === lastKey) return;
+      lastKey = key;
+      socket.emit("viewState", { cx, cy, scale: sx });
+    };
+    const interval = setInterval(publish, 100);
+    return () => clearInterval(interval);
+  }, [socket, isMapOnly, mapId]);
 
   React.useEffect(() => {
     const contextmenuListener = (ev: Event) => {
@@ -124,26 +146,13 @@ export const PlayerMap = ({
     };
   }, []);
 
-  React.useEffect(() => {
-    const listener = () => {
-      if (document.hidden === false) {
-        currentMap.retry();
-      }
-    };
-
-    window.document.addEventListener("visibilitychange", listener, false);
-
-    return () =>
-      window.document.removeEventListener("visibilitychange", listener, false);
-  }, []);
-
   const updateToken = React.useCallback(
     ({ id, ...updates }) => {
-      // Player window is view-only; the DM drives all token movement.
-      if (isMapOnly || !currentMap.data?.activeMap) {
+      // The player window is view-only; the DM drives all token movement.
+      if (isMapOnly || !map || !mapId) {
         return;
       }
-      fetch(`/map/${currentMap.data.activeMap.id}/token/${id}`, {
+      fetch(`/map/${mapId}/token/${id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -154,7 +163,7 @@ export const PlayerMap = ({
         }),
       });
     },
-    [currentMap, fetch, isMapOnly, socket.id]
+    [map, fetch, isMapOnly, socket.id]
   );
 
   const [toolbarPosition, setToolbarPosition] = useSpring(() => ({
@@ -210,18 +219,23 @@ export const PlayerMap = ({
       },
     }
   );
-  const noteWindowActions = useNoteWindowActions();
   return (
     <>
       <div
         style={{
-          cursor: "grab",
+          cursor: isMapOnly ? "default" : "grab",
           background: "black",
           height: "100vh",
         }}
       >
         <FlatContextProvider
           value={[
+            [
+              IsDungeonMasterContext.Provider,
+              { value: false },
+            ] as ComponentWithPropsTuple<
+              React.ComponentProps<typeof IsDungeonMasterContext.Provider>
+            >,
             [
               MarkAreaToolContext.Provider,
               {
@@ -230,11 +244,11 @@ export const PlayerMap = ({
                     if (isMapOnly) {
                       return;
                     }
-                    if (currentMap.data?.activeMap) {
+                    if (map && mapId) {
                       mapPing({
                         variables: {
                           input: {
-                            mapId: currentMap.data.activeMap.id,
+                            mapId,
                             x,
                             y,
                           },
@@ -257,13 +271,14 @@ export const PlayerMap = ({
             >,
           ]}
         >
-          {currentMap.data?.activeMap ? (
+          {map ? (
             <React.Suspense fallback={null}>
               <LazyLoadedMapView
-                map={currentMap.data.activeMap}
-                activeTool={PlayerMapTool}
+                map={map}
+                activeTool={isMapOnly ? null : PlayerMapTool}
                 controlRef={controlRef}
                 sharedContexts={[
+                  IsDungeonMasterContext,
                   MarkAreaToolContext,
                   NoteWindowActionsContext,
                   ReactRelayContext,
@@ -295,12 +310,10 @@ export const PlayerMap = ({
                         <Toolbar.Button
                           onClick={() => {
                             controlRef.current?.controls.center();
-                            onCommand?.("center");
                           }}
                           onTouchStart={(ev) => {
                             ev.preventDefault();
                             controlRef.current?.controls.center();
-                            onCommand?.("center");
                           }}
                         >
                           <Icon.Compass boxSize="20px" />
@@ -311,12 +324,10 @@ export const PlayerMap = ({
                         <Toolbar.LongPressButton
                           onClick={() => {
                             controlRef.current?.controls.zoomIn();
-                            onCommand?.("zoomIn");
                           }}
                           onLongPress={() => {
                             const interval = setInterval(() => {
                               controlRef.current?.controls.zoomIn();
-                              onCommand?.("zoomIn");
                             }, 100);
 
                             return () => clearInterval(interval);
@@ -330,12 +341,10 @@ export const PlayerMap = ({
                         <Toolbar.LongPressButton
                           onClick={() => {
                             controlRef.current?.controls.zoomOut();
-                            onCommand?.("zoomOut");
                           }}
                           onLongPress={() => {
                             const interval = setInterval(() => {
                               controlRef.current?.controls.zoomOut();
-                              onCommand?.("zoomOut");
                             }, 100);
 
                             return () => clearInterval(interval);
@@ -343,20 +352,6 @@ export const PlayerMap = ({
                         >
                           <Icon.ZoomOut boxSize="20px" />
                           <Icon.Label>Zoom Out</Icon.Label>
-                        </Toolbar.LongPressButton>
-                      </Toolbar.Item>
-                      <Toolbar.Item isActive>
-                        <Toolbar.LongPressButton
-                          onClick={() => {
-                            noteWindowActions.showNoteInWindow(
-                              null,
-                              "note-editor",
-                              true
-                            );
-                          }}
-                        >
-                          <Icon.BookOpen boxSize="20px" />
-                          <Icon.Label>Notes</Icon.Label>
                         </Toolbar.LongPressButton>
                       </Toolbar.Item>
                     </Toolbar.Group>
@@ -405,12 +400,45 @@ const AuthenticatedContent: React.FC<{
       isMapOnly={props.isMapOnly}
       role="Player"
     >
-      <PlayerMap
+      <ActiveMapPlayer
         fetch={props.localFetch}
         socket={socket}
         isMapOnly={props.isMapOnly}
       />
     </AuthenticatedAppShell>
+  );
+};
+
+const ActiveMapPlayer: React.FC<{
+  fetch: typeof window.fetch;
+  socket: ReturnType<typeof useSocket>;
+  isMapOnly: boolean;
+}> = ({ fetch, socket, isMapOnly }) => {
+  const currentMap = useQuery<playerArea_PlayerMap_ActiveMapQuery>(
+    PlayerMap_ActiveMapQuery
+  );
+
+  React.useEffect(() => {
+    const listener = () => {
+      if (document.hidden === false) {
+        currentMap.retry();
+      }
+    };
+
+    window.document.addEventListener("visibilitychange", listener, false);
+
+    return () =>
+      window.document.removeEventListener("visibilitychange", listener, false);
+  }, []);
+
+  return (
+    <PlayerMapView
+      map={currentMap.data?.activeMap ?? null}
+      mapId={currentMap.data?.activeMap?.id ?? null}
+      fetch={fetch}
+      socket={socket}
+      isMapOnly={isMapOnly}
+    />
   );
 };
 
