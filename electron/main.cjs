@@ -20,6 +20,7 @@ if (!app.requestSingleInstanceLock()) {
     mainWindow = new BrowserWindow({
       width: 1400,
       height: 900,
+      autoHideMenuBar: true,
       webPreferences: {
         preload: path.join(__dirname, "preload.cjs"),
         contextIsolation: true,
