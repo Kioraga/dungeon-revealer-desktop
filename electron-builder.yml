@@ -14,3 +14,7 @@ linux:
   target: AppImage
   category: Game
   icon: build/images/icons/android-chrome-512x512.png
+  artifactName: DungeonRevealer_Linux.${ext}
+win:
+  target: msi
+  artifactName: DungeonRevealer_Windows.${ext}
