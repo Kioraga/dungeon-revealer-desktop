@@ -17,4 +17,5 @@ linux:
   artifactName: DungeonRevealer_Linux.${ext}
 win:
   target: msi
+  icon: build/images/icons/icon.ico
   artifactName: DungeonRevealer_Windows.${ext}
