@@ -3,7 +3,7 @@ productName: Dungeon Revealer
 directories:
   output: release
 files:
-  - dist/**
+  - build/**
   - server-build/**
   - electron/**
   - '!**/*.map'
