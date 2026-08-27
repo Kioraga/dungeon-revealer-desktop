@@ -1,7 +1,7 @@
 {
   "name": "dungeon-revealer-desktop",
   "version": "1.17.1",
-  "description": "Local desktop app for revealing game maps to players on a projector or external screen.",
+  "description": "Desktop app for tabletop RPGs where the Game Master reveals the map with live fog of war, rolls dice and keeps notes — with a fullscreen player view for the projector.",
   "main": "electron/main.cjs",
   "license": "ISC",
   "author": "apclary",

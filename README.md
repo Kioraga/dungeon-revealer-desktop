@@ -1,96 +1,95 @@
 # Dungeon Revealer Desktop
 
-A local desktop app (Electron) for tabletop RPGs that reveals game maps to your
-players on a projector or external screen. The dungeon master controls
-everything from a single window; the player view is a fullscreen mirror on a
-second display.
+Show your tabletop RPG maps to players on a projector or second screen. You control everything — they just watch.
 
 Built on top of [dungeon-revealer](https://github.com/dungeon-revealer/dungeon-revealer).
 
-## Features
+## How it works
 
-- **DM window** — the main window. Load maps, draw/erase fog of war, add and
-  move tokens, use the dice-roll chat and notes.
-- **Player window** — fullscreen on the display of your choice (the projector),
-  opened with **Start Sharing**. It is view-only: no chat, no user list, no
-  toolbar.
-- **DM | Player tabs** — a tab at the top of the DM window toggles between the
-  DM view and a mirror of the player view, so you don't have to keep looking at
-  the projector. The zoom / center-map controls in the mirror also move the
-  player window.
-- **Screen selection** — the **Screen** button in the DM toolbar picks which
-  display the player window opens on.
-- Everything runs locally on `127.0.0.1`. No server to host, no players to
-  connect, no passwords.
+- **DM window** — your control panel. Load a map, cover it with fog, reveal areas with a brush, add tokens and roll dice.
+- **Player window** — fullscreen on the projector. Players see only what you reveal. No buttons, no controls.
 
-## Getting Started
+Everything runs on your computer. No internet, no accounts, no hosting needed.
 
-### Prerequisites
+## Download
 
-- [Node.js](https://nodejs.org/) (14+)
+Get the latest release from the **Releases** page:
 
-### Install & run
+- **Linux** → `DungeonRevealer_Linux.AppImage` (just run it, no install needed)
+- **Windows** → `DungeonRevealer_Windows.msi`
+
+Or run from source (see below).
+
+## Quick Start (from source)
+
+Requirements: [Node.js](https://nodejs.org/) 16+
 
 ```bash
 npm install
 npm run start:desktop
 ```
 
-The first run builds the app and opens the DM window.
+That's it — the DM window opens automatically.
 
-## Using the app
+## How to use
 
-### The DM window
+1. Open the app and load a map from **Map Library** (or drag & drop an image).
+2. Draw fog with the **Brush** tool. Use **Shroud All** / **Clear All** to cover or uncover the whole map.
+3. Click **Screen** to pick which display the player window will use.
+4. Click **Start Sharing** — the player window opens fullscreen on that display.
+5. Use the **DM | Player** tabs at the top to preview what players see without turning around. Zooming in the preview also zooms the projector.
 
-The main window is the DM view:
+To stop: click **Stop Sharing**. Closing the DM window closes everything.
 
-- **Start Sharing** — uploads the current fog of war and opens the player
-  window fullscreen on the selected screen.
-- **Stop Sharing** — blanks the player window and closes it.
-- **Screen** — choose which display the player window opens on.
-- **DM | Player** (top center) — switch between the DM view and a mirror of the
-  player view. The mirror shows the fog exactly as the players see it, with
-  zoom / center-map controls that also drive the player window.
-- Load a map via **Map Library**. Add tokens with the **Token** tool. Reveal
-  map areas by drawing with the brush, or shroud them again.
+### Tools
 
-### The player window
+| Tool      | What it does                                |
+| --------- | ------------------------------------------- |
+| **Move**  | Pan and zoom the map                        |
+| **Brush** | Reveal or hide fog (hold `Shift` to switch) |
+| **Area**  | Select a rectangular area                   |
+| **Mark**  | Ping a spot for players                     |
+| **Token** | Place and move tokens                       |
 
-View-only. Shows the active map and fog of war live. No interaction: the DM
-drives everything (tokens, zoom, center, notes).
+Other actions: **Map Library**, **Media Library**, **Notes** and **Grid settings** are in the bottom toolbar.
 
 ### Shortcuts
 
-| Key            | Functionality                                                                                 |
-| -------------- | --------------------------------------------------------------------------------------------- |
-| `1`            | select move tool.                                                                             |
-| `2`            | select area tool.                                                                             |
-| `3`            | select brush tool.                                                                            |
-| `4`            | select mark tool.                                                                             |
-| `5`            | select token tool.                                                                            |
-| `Shift`        | toggle between hide/reveal.                                                                   |
-| `CMD/Ctrl + S` | push map to players.                                                                          |
-| Hold `Alt`     | use move tool while `Alt` key is pressed and return to previous mode after `Alt` is released. |
+| Key                    | Action                                                  |
+| ---------------------- | ------------------------------------------------------- |
+| `1` – `5`              | Switch tools (1=Move, 2=Brush, 3=Area, 4=Mark, 5=Token) |
+| `Shift`                | Toggle reveal / hide while using the brush              |
+| `Alt` (hold)           | Temporarily switch to Move                              |
+| `Ctrl + S` / `Cmd + S` | Send current fog to players                             |
+| `Ctrl + Shift + F`     | Search notes                                            |
 
-## Where your data lives
+## Where your data is saved
 
-Maps, tokens, notes and settings are stored in the Electron user data
-directory (e.g. `~/.config/dungeon-revealer-desktop/data` on Linux,
-`~/Library/Application Support/dungeon-revealer-desktop/data` on macOS,
-`%APPDATA%\dungeon-revealer-desktop\data` on Windows).
+Maps, tokens and notes are stored locally:
 
-## Development
+- Linux: `~/.config/dungeon-revealer-desktop/data`
+- macOS: `~/Library/Application Support/dungeon-revealer-desktop/data`
+- Windows: `%APPDATA%\dungeon-revealer-desktop\data`
+
+## For developers
 
 ```bash
-npm run start:server:dev   # backend (ts-node-dev)
-npm run start:frontend:dev # frontend (vite, port 4000)
-npm run build              # production build (build/ + server-build/)
+npm run start:server:dev    # backend only
+npm run start:frontend:dev  # frontend only (http://localhost:4000/dm)
+npm run build               # production build
+npm test                    # tests
 ```
 
-For browser-based development without Electron, run the two dev scripts above
-and open `http://localhost:4000/dm` (the Electron window features — player
-window, screen selection — are only available when running via
-`start:desktop`).
+If you change anything in `server/graphql/` or `server/maps.ts`, run:
+
+```bash
+npm run write-schema        # regenerate GraphQL types
+./node_modules/.bin/relay-compiler
+```
+
+> Pinned versions: Electron 16, Vite 2.7, Relay 10. Don't upgrade without checking — they are tied together.
+
+See `AGENTS.md` for architecture details.
 
 ## License
 
