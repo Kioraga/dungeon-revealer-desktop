@@ -218,7 +218,7 @@ const TokenImageList = (props: {
                     onClick={() => props.setTitleFilter("")}
                     variant="unstyled"
                   >
-                    <Icon.X color="black" />
+                    <Icon.X color="var(--color-text)" />
                   </Button>
                 ) : null}
               </InputRightElement>

@@ -2,6 +2,24 @@ import { css } from "@emotion/react";
 import { buildUrl } from "./public-url";
 
 export const globalStyles = css`
+  /* Base palette: keeps the app styled before the active theme CSS loads (and
+  in dev, where build/themes may not exist). MUST match public/themes/default.css. */
+  :root {
+    --color-accent: #044e54;
+    --color-accent-hover: #03464b;
+    --color-accent-contrast: #ffffff;
+    --color-surface: #ffffff;
+    --color-surface-hover: #f0f4f8;
+    --color-border: #cbd2d9;
+    --color-text: #3e4c58;
+    --color-text-muted: #9eb2c7;
+    --color-toolbar-active: #223c07;
+    --color-danger: #ba2525;
+    --color-success: #247305;
+    --color-scrollbar: #d1d1d1;
+    --color-scrollbar-hover: #b3b3b3;
+  }
+
   @font-face {
     font-family: "folkard";
     src: url("${buildUrl("/fonts/folkard.woff")}") format("woff");
@@ -65,7 +83,7 @@ export const globalStyles = css`
     width: 100%;
     height: 5px;
     cursor: pointer;
-    background: lightgray;
+    background: var(--color-border);
     border-radius: 5px;
   }
 
@@ -74,7 +92,7 @@ export const globalStyles = css`
     height: 15px;
     width: 15px;
     border-radius: 15px;
-    background: #ffffff;
+    background: var(--color-surface);
     cursor: pointer;
     -webkit-appearance: none;
     margin-top: -5px;
@@ -82,6 +100,33 @@ export const globalStyles = css`
 
   .no-focus-outline *:focus {
     outline: none !important;
+  }
+
+  /* Custom scrollbar, themable via --color-scrollbar* */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-scrollbar);
+    border-radius: 5px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-scrollbar-hover);
+  }
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* Chakra toggles follow the theme accent (default Chakra blue clashes). */
+  .chakra-switch__track[data-checked] {
+    background-color: var(--color-accent) !important;
+  }
+  .chakra-slider__filled-track {
+    background-color: var(--color-accent) !important;
   }
 
   .react-colorful__pointer {

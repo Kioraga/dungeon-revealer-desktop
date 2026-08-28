@@ -150,15 +150,13 @@ export const TokenImageCropper = (props: {
               spacing={2}
               padding={3}
               borderRadius={3}
-              background="white"
+              background="var(--color-surface)"
               maxHeight={500}
               zIndex={10}
               width="100%"
               maxWidth={{ base: undefined, xl: "300px" }}
             >
-              <Heading size="xs">
-                {t("Token Images from this Source")}
-              </Heading>
+              <Heading size="xs">{t("Token Images from this Source")}</Heading>
               <Stack direction={{ base: "row", xl: "column" }}>
                 {data.data.tokenImages.edges.map((edge) => (
                   <Grid
@@ -179,7 +177,7 @@ export const TokenImageCropper = (props: {
                       <Text
                         paddingTop={3}
                         width="100%"
-                        backgroundColor="white"
+                        backgroundColor="var(--color-surface)"
                         fontSize="xs"
                         maxWidth={100}
                         whiteSpace="nowrap"
@@ -251,7 +249,7 @@ export const TokenImageCropper = (props: {
           justifyContent="center"
         >
           <Stack
-            background="white"
+            background="var(--color-surface)"
             padding={5}
             borderRadius={3}
             maxWidth={600}
@@ -317,7 +315,11 @@ export const TokenImageCropper = (props: {
                 {t("Abort")}
               </Button>
               <Button
-                colorScheme="teal"
+                backgroundColor="var(--color-accent)"
+                color="var(--color-accent-contrast)"
+                _hover={{
+                  backgroundColor: "var(--color-accent-hover)",
+                }}
                 isDisabled={croppedAreaPixels === null}
                 onClick={async () => {
                   if (!croppedAreaPixels) {
@@ -332,7 +334,8 @@ export const TokenImageCropper = (props: {
                 }}
               >
                 {t("Confirm")}
-              </Button>            </Stack>
+              </Button>{" "}
+            </Stack>
           </Stack>
         </GridItem>
       </Grid>

@@ -120,8 +120,9 @@ const NoteEditorSideReference = styled.div`
   left: calc(100% + 12px);
   top: 25%;
   width: 300px;
-  background: white;
-  border-left: 1px solid lightgrey;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-left: 1px solid var(--color-border);
   border-radius: 5px;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
 `;
@@ -151,7 +152,8 @@ const TitleAutoSaveInput = (props: { id: string; title: string }) => {
 };
 
 const PermissionMenuContainer = styled.div`
-  background-color: white;
+  background-color: var(--color-surface);
+  color: var(--color-text);
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
   border-radius: 5px;
   padding: 8px;

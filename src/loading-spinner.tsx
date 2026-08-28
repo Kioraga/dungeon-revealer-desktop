@@ -35,7 +35,7 @@ export const LoadingSpinner: React.FC<{
         cy={50}
         r={43}
         strokeWidth={3}
-        stroke="#044e54"
+        style={{ stroke: "var(--color-accent)" }}
         strokeDasharray="67.54424205218055 67.54424205218055"
         fill="none"
         strokeLinecap="round"
@@ -59,7 +59,7 @@ export const LoadingSpinner: React.FC<{
         cy={50}
         r={39}
         strokeWidth={3}
-        stroke="#4e6e71"
+        style={{ stroke: "var(--color-accent-hover)" }}
         strokeDasharray="61.261056745000964 61.261056745000964"
         strokeDashoffset={61.261}
         fill="none"

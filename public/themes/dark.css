@@ -1,0 +1,16 @@
+/* Dark theme — cool grays with a teal accent. */
+:root {
+  --color-accent: #4fd1c5;
+  --color-accent-hover: #3fbfb3;
+  --color-accent-contrast: #0b1a1d;
+  --color-surface: #1f2429;
+  --color-surface-hover: #2a3138;
+  --color-border: #3a434c;
+  --color-text: #d7dee6;
+  --color-text-muted: #8b96a3;
+  --color-toolbar-active: #ffffff;
+  --color-danger: #ef5350;
+  --color-success: #7ddb8a;
+  --color-scrollbar: #3a434c;
+  --color-scrollbar-hover: #4a5560;
+}

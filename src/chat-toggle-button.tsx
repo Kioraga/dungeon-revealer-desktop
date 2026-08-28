@@ -1,7 +1,6 @@
 import * as React from "react";
 import styled from "@emotion/styled/macro";
 import * as Icon from "./feather-icons";
-import { darken } from "polished";
 
 export const IconButton = styled.button<{ colorVariant?: "white" | "green" }>`
   position: relative;
@@ -9,7 +8,9 @@ export const IconButton = styled.button<{ colorVariant?: "white" | "green" }>`
   height: 30px;
   width: 30px;
   background-color: ${(p) =>
-    p.colorVariant === "green" ? "#044e54" : "white"};
+    p.colorVariant === "green"
+      ? "var(--color-accent)"
+      : "var(--color-surface)"};
   z-index: 20;
   padding: 0;
   display: flex;
@@ -19,13 +20,16 @@ export const IconButton = styled.button<{ colorVariant?: "white" | "green" }>`
   border: none;
   cursor: pointer;
 
-  color: ${(p) => (p.colorVariant === "green" ? "white" : null)};
+  color: ${(p) =>
+    p.colorVariant === "green"
+      ? "var(--color-accent-contrast)"
+      : "var(--color-text)"};
 
   &:hover {
     background-color: ${(p) =>
       p.colorVariant === "green"
-        ? darken(0.1, "#044e54")
-        : darken(0.1, "white")};
+        ? "var(--color-accent-hover)"
+        : "var(--color-surface-hover)"};
   }
 `;
 

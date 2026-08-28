@@ -1,0 +1,16 @@
+/* Monokai — the classic editor palette, green accent. */
+:root {
+  --color-accent: #a6e22e;
+  --color-accent-hover: #8fd01f;
+  --color-accent-contrast: #1b1c16;
+  --color-surface: #2d2e28;
+  --color-surface-hover: #3a3b33;
+  --color-border: #49483e;
+  --color-text: #f8f8f2;
+  --color-text-muted: #75715e;
+  --color-toolbar-active: #f8f8f2;
+  --color-danger: #f92672;
+  --color-success: #a6e22e;
+  --color-scrollbar: #49483e;
+  --color-scrollbar-hover: #5a594f;
+}

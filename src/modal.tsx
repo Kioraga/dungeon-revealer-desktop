@@ -202,7 +202,8 @@ const Dialog: React.FC<
         width: "100%",
         //@ts-ignore
         maxWidth: DialogSizeMappings[size],
-        backgroundColor: "white",
+        backgroundColor: "var(--color-surface)",
+        color: "var(--color-text)",
         borderRadius: 5,
         marginLeft: 8,
         marginRight: 8,

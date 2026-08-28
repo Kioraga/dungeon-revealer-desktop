@@ -91,6 +91,7 @@ export const es: Record<string, string> = {
   Logs: "Registros",
   "Dice Roll Notes": "Notas de tiradas de dados",
   "Dice Sound": "Sonido de los dados",
+  Theme: "Tema",
   Roll: "Tirar",
   "Show Info": "Mostrar información",
   "Dice Rolls": "Tiradas de dados",

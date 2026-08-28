@@ -19,19 +19,22 @@ const ShapeButton = styled.button<{ isActive: boolean }>`
   border: none;
   cursor: pointer;
   background-color: transparent;
-  color: ${(p) => (p.isActive ? "rgba(0, 0, 0, 1)" : "hsl(211, 27%, 70%)")};
+  color: ${(p) =>
+    p.isActive ? "var(--color-text)" : "var(--color-text-muted)"};
   display: flex;
   align-items: flex-end;
 
   > svg {
     margin-right: 8px;
-    stroke: ${(p) => (p.isActive ? "rgba(0, 0, 0, 1)" : "hsl(211, 27%, 70%)")};
+    stroke: ${(p) =>
+      p.isActive ? "var(--color-text)" : "var(--color-text-muted)"};
   }
 `;
 
 const IconPicker = () => {
-  const { displayValue, label, onUpdate, options } =
-    useInputContext<Configuration<string> & LevaInputProps<string>>();
+  const { displayValue, label, onUpdate, options } = useInputContext<
+    Configuration<string> & LevaInputProps<string>
+  >();
   return (
     <Row input>
       <Label>{label}</Label>

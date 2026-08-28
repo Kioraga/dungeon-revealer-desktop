@@ -134,7 +134,7 @@ const ViewModePill = styled(motion.div)`
   left: 0;
   right: 0;
   bottom: 0;
-  background: #044e54;
+  background: var(--color-accent);
   border-radius: 7px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
 `;

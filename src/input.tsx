@@ -4,6 +4,8 @@ import styled from "@emotion/styled/macro";
 const InputInner = styled.input`
   border: none;
   box-shadow: rgba(22, 23, 26, 0.15) 0px 0px 5px;
+  background-color: var(--color-surface);
+  color: var(--color-text);
 
   width: 100%;
 
@@ -17,7 +19,7 @@ const InputInner = styled.input`
   border-radius: 8px;
 
   ::placeholder {
-    color: #b3bbc3;
+    color: var(--color-text-muted);
   }
 
   outline: none;
@@ -47,7 +49,7 @@ const InputGroupContainer = styled.div``;
 
 const InputError = styled.div`
   padding-top: 4px;
-  color: #ba2525;
+  color: var(--color-danger);
   font-size: 12px;
   height: 12px;
 `;

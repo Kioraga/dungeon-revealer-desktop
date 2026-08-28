@@ -6,7 +6,7 @@ import { useI18n } from "../i18n";
 
 const LabelText = styled.div`
   font-weight: bold;
-  color: rgb(62, 76, 88);
+  color: var(--color-text);
   letter-spacing: 1px;
   padding-bottom: 8px;
 `;

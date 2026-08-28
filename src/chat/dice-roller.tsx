@@ -12,17 +12,17 @@ const NOTATION = /^\d*d\d+([+-]\d+)?$/;
 
 const DieButton = styled.button`
   flex: 1;
-  border: 1px solid rgb(203, 210, 217);
+  border: 1px solid var(--color-border);
   border-radius: 5px;
-  background: #fff;
-  color: rgb(62, 76, 88);
+  background: var(--color-surface);
+  color: var(--color-text);
   font-size: 12px;
   font-weight: 700;
   padding: 6px 0;
   cursor: pointer;
   &:hover {
-    background: #044e54;
-    color: #fff;
+    background: var(--color-accent);
+    color: var(--color-accent-contrast);
   }
 `;
 

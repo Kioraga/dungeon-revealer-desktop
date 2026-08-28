@@ -2,7 +2,7 @@ import * as React from "react";
 import styled from "@emotion/styled/macro";
 
 const Box = styled.div`
-  border: 0.5px solid lightgrey;
+  border: 0.5px solid var(--color-border);
   padding: 8px;
   border-radius: 2px;
 `;

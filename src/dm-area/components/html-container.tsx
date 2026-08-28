@@ -251,7 +251,7 @@ const HtmlContainerStyled = styled.div`
   blockquote {
     padding: 0 1em;
     background-color: rgba(0, 0, 0, 0.04);
-    border-left: 7px solid #bcccdc;
+    border-left: 7px solid var(--color-border);
   }
 
   img {
@@ -271,10 +271,10 @@ const HtmlContainerStyled = styled.div`
 
   pre,
   code {
-    border: 0.5px solid lightgray;
+    border: 0.5px solid var(--color-border);
     border-radius: 2px;
     padding: 4px;
-    background: #f8f8f8;
+    background: var(--color-surface-hover);
   }
 
   table {
@@ -283,7 +283,7 @@ const HtmlContainerStyled = styled.div`
 
   td,
   th {
-    border: 1px solid #999;
+    border: 1px solid var(--color-border);
     padding: 0.5rem;
     text-align: left;
   }

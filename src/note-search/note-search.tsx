@@ -5,7 +5,6 @@ import { useQuery } from "relay-hooks";
 import { noteSearch_SearchQuery } from "./__generated__/noteSearch_SearchQuery.graphql";
 import { useNoteWindowActions } from "../dm-area/token-info-aside";
 import * as Icon from "../feather-icons";
-import { darken } from "polished";
 import { useOnClickOutside } from "../hooks/use-on-click-outside";
 import { useCurrent } from "../hooks/use-current";
 import { useI18n } from "../i18n";
@@ -40,7 +39,8 @@ const InputLabel = styled.label`
 const IconContainer = styled.div`
   border-top-left-radius: 5px;
   border-bottom-left-radius: 5px;
-  background-color: white;
+  background-color: var(--color-surface);
+  color: var(--color-text);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -60,6 +60,8 @@ const NoteSearchInput = styled.input`
   border: none;
   width: 100%;
   height: 50px;
+  background-color: var(--color-surface);
+  color: var(--color-text);
 `;
 
 const NoteSearch_SearchQuery = graphql`
@@ -83,27 +85,28 @@ const ResultContainer = styled.div`
   flex-wrap: wrap;
   margin-left: auto;
   margin-right: auto;
-  background-color: #fff;
+  background-color: var(--color-surface);
 `;
 
 const Result = styled.button`
   display: block;
   text-align: left;
   cursor: pointer;
-  background-color: #fff;
+  background-color: var(--color-surface);
+  color: var(--color-text);
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
   padding: 0;
   border: 0;
   padding-bottom: 4px;
   padding-top: 4px;
-  border-bottom: 1px solid lightgray;
+  border-bottom: 1px solid var(--color-border);
   width: 100%;
   padding-left: 12px;
   padding-right: 12px;
 
   &:hover,
   &:focus {
-    background-color: ${darken(0.1, "#fff")};
+    background-color: var(--color-surface-hover);
   }
 
   &:first-of-type {

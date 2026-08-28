@@ -491,7 +491,8 @@ const Menu = styled.span`
 const Content = styled.div`
   width: 90vw;
   height: 90vh;
-  background-color: #fff;
+  background-color: var(--color-surface);
+  color: var(--color-text);
   border-radius: 5px;
   display: flex;
   flex-direction: column;
@@ -511,7 +512,8 @@ const ListItem = styled.div`
   text-align: center;
   margin-bottom: 16px;
 
-  background-color: #fff;
+  background-color: var(--color-surface);
+  color: var(--color-text);
 
   &:hover [data-menu] {
     display: block;

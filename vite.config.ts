@@ -12,6 +12,7 @@ export default defineConfig({
       "/api/socket.io": { target: "ws://localhost:3000", ws: true },
       "/api": "http://localhost:3000",
       "/files": "http://localhost:3000",
+      "/themes": "http://localhost:3000",
     },
   },
   optimizeDeps: {

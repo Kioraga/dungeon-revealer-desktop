@@ -1,7 +1,6 @@
 import * as React from "react";
 import useAsyncEffect from "@n1ru4l/use-async-effect";
 import styled from "@emotion/styled/macro";
-import { darken } from "polished";
 import * as Icon from "../../feather-icons";
 import * as Button from "../../button";
 import { Modal } from "../../modal";
@@ -14,7 +13,8 @@ import { useI18n } from "../../i18n";
 const Content = styled.div`
   width: 90vw;
   height: 90vh;
-  background-color: #fff;
+  background-color: var(--color-surface);
+  color: var(--color-text);
   border-radius: 5px;
   display: flex;
   flex-direction: column;
@@ -33,7 +33,8 @@ const ListItem = styled.button<{ isActive: boolean }>`
   text-align: center;
   margin-bottom: 16px;
 
-  background-color: ${(p) => (p.isActive ? darken(0.1, "#fff") : "#fff")};
+  background-color: ${(p) =>
+    p.isActive ? "var(--color-surface-hover)" : "var(--color-surface)"};
   font-weight: ${(p) => (p.isActive ? "bold" : "inherit")};
 `;
 

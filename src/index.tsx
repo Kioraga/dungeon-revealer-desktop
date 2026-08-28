@@ -10,6 +10,7 @@ import { Modal } from "./modal";
 import * as UserStyleSheetOrchestrator from "./user-style-sheet-orchestrator";
 import { registerSoundPlayback } from "./register-sound-playback";
 import { I18nProvider } from "./i18n";
+import { ThemeSettingsProvider } from "./theme-settings";
 
 loader.config({
   paths: {
@@ -57,12 +58,14 @@ const main = async () => {
       <CacheProvider value={emotionCache}>
         <ChakraProvider>
           <I18nProvider>
-            <UserStyleSheetOrchestrator.Provider>
-              <Modal.Provider>
-                <Global styles={globalStyles} />
-                {component}
-              </Modal.Provider>
-            </UserStyleSheetOrchestrator.Provider>
+            <ThemeSettingsProvider>
+              <UserStyleSheetOrchestrator.Provider>
+                <Modal.Provider>
+                  <Global styles={globalStyles} />
+                  {component}
+                </Modal.Provider>
+              </UserStyleSheetOrchestrator.Provider>
+            </ThemeSettingsProvider>
           </I18nProvider>
         </ChakraProvider>
       </CacheProvider>,

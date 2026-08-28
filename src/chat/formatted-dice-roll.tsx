@@ -7,9 +7,10 @@ const StyledDiceRoll = styled.span`
 `;
 
 const Wrapper = styled.span`
-  background: white;
+  background: var(--color-surface);
+  color: var(--color-text);
   border-radius: 3px;
-  border: 1px solid #d1d1d1;
+  border: 1px solid var(--color-border);
   padding-left: 4px;
   padding-top: 2px;
   padding-bottom: 2px;
@@ -31,8 +32,8 @@ const RollWrapper = styled.span<{ crossedOut: boolean }>`
 `;
 
 const colors = {
-  fail: "#730505",
-  crit: "#247305",
+  fail: "var(--color-danger)",
+  crit: "var(--color-success)",
 };
 
 const RollResult = styled.span<{

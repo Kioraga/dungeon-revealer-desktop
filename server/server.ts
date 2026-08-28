@@ -8,6 +8,7 @@ import http from "http";
 import { Server as SocketIOServer } from "socket.io";
 import busboy from "connect-busboy";
 import createFilesRouter from "./routes/files";
+import createThemesRouter from "./routes/themes";
 import createMapRouter from "./routes/map";
 import { Maps } from "./maps";
 import { Settings } from "./settings";
@@ -194,6 +195,11 @@ export const bootstrapServer = async (env: ReturnType<typeof getEnv>) => {
     roleMiddleware,
     fileStorage,
   });
+  const { router: themesRouter } = createThemesRouter({
+    dataDirectory: env.DATA_DIRECTORY,
+    // Built-in theme templates ship inside the vite build (public/themes).
+    builtinThemesDirectory: path.join(env.PUBLIC_PATH, "themes"),
+  });
 
   const socketSessionStore = createSocketSessionStore();
 
@@ -217,6 +223,8 @@ export const bootstrapServer = async (env: ReturnType<typeof getEnv>) => {
   apiRouter.use(notesImportRouter);
 
   app.use("/api", apiRouter);
+  // Public (no auth): themes load before the auth screen. CSS only, id whitelisted.
+  app.use("/themes", themesRouter);
 
   const indexHtml = path.join(env.PUBLIC_PATH, "index.html");
   const indexHtmlContent = fs

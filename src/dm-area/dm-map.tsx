@@ -1161,10 +1161,12 @@ const RedStopIcon = styled.span`
 const ScreenButton = styled.button<{ isActive: boolean }>`
   width: 130px;
   min-height: 34px;
-  border: 1px solid rgb(203, 210, 217);
+  border: 1px solid var(--color-border);
   border-radius: 6px;
-  background-color: ${(p) => (p.isActive ? "#044e54" : "#fff")};
-  color: ${(p) => (p.isActive ? "#fff" : "rgb(62, 76, 88)")};
+  background-color: ${(p) =>
+    p.isActive ? "var(--color-accent)" : "var(--color-surface)"};
+  color: ${(p) =>
+    p.isActive ? "var(--color-accent-contrast)" : "var(--color-text)"};
   font-size: 12px;
   font-weight: 600;
   padding: 8px 10px;
@@ -1173,7 +1175,8 @@ const ScreenButton = styled.button<{ isActive: boolean }>`
   word-break: break-word;
   line-height: 1.3;
   &:hover {
-    background-color: ${(p) => (p.isActive ? "#044e54" : "#f0f4f8")};
+    background-color: ${(p) =>
+      p.isActive ? "var(--color-accent)" : "var(--color-surface-hover)"};
   }
 `;
 
@@ -1270,7 +1273,7 @@ const GridConfigurator = (props: {
       maxWidth="500px"
       borderRadius="12px"
       padding="2"
-      backgroundColor="white"
+      backgroundColor="var(--color-surface)"
       zIndex="1"
     >
       <Heading size="lg">{t("Grid Configurator")}</Heading>

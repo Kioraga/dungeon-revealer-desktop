@@ -11,7 +11,8 @@ const WindowContainer = styled(animated.div)<{ isSideBarVisible: boolean }>`
   position: absolute;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
-  background: white;
+  background: var(--color-surface);
+  color: var(--color-text);
   position: absolute;
   z-index: 100;
   user-select: text;
@@ -23,7 +24,7 @@ const WindowHeader = styled.div`
   height: 50px;
   display: flex;
   padding: 8px 12px;
-  border-bottom: 1px solid lightgray;
+  border-bottom: 1px solid var(--color-border);
   cursor: grab;
   align-items: center;
   justify-content: flex-end;
@@ -51,7 +52,8 @@ const WindowSideBar = styled.div`
   transform: translateX(-249px);
   max-width: 250px;
   width: 100%;
-  background: white;
+  background: var(--color-surface);
+  color: var(--color-text);
   height: 100%;
   border-top-left-radius: 8px;
   border-bottom-left-radius: 8px;

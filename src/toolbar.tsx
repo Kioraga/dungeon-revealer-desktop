@@ -41,11 +41,11 @@ const ToolbarGroup = styled.ul<{
   padding: 0;
   padding-bottom: ${(p) => (!p.horizontal ? MARGIN_2 : null)};
   border-bottom: ${(p) =>
-    p.divider && !p.vertical ? "1px solid rgba(222, 222, 222, .3)" : null};
+    p.divider && !p.vertical ? "1px solid var(--color-border)" : null};
   border-right: ${(p) =>
-    p.horizontal && p.vertical ? "1px solid rgba(222, 222, 222, .3)" : null};
+    p.horizontal && p.vertical ? "1px solid var(--color-border)" : null};
   list-style: none;
-  background-color: rgba(255, 255, 255, 1);
+  background-color: var(--color-surface);
 
   &:first-of-type {
     padding-left: ${(p) => (p.horizontal ? "12px" : null)};
@@ -74,7 +74,9 @@ const ToolbarItem = styled.li<{
   }
 
   color: ${(p) =>
-    p.isActive || p.isEnabled ? "rgb(34, 60, 7, 1)" : "hsl(211, 27%, 70%)"};
+    p.isActive || p.isEnabled
+      ? "var(--color-toolbar-active)"
+      : "var(--color-text-muted)"};
 
   &:last-child {
     margin-right: 0;
@@ -95,7 +97,9 @@ const ToolbarItem = styled.li<{
 
   svg {
     stroke: ${(p) =>
-      p.isActive || p.isEnabled ? "rgb(34, 60, 7, 1)" : "hsl(211, 27%, 70%)"};
+      p.isActive || p.isEnabled
+        ? "var(--color-toolbar-active)"
+        : "var(--color-text-muted)"};
   }
 `;
 
@@ -120,7 +124,9 @@ const ToolbarItemPopupContainer = styled.div<{ horizontal?: boolean }>`
   position: absolute;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
   border-radius: ${BORDER_RADIUS};
-  background-color: rgba(255, 255, 255, 1);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  text-align: left;
   top: ${(p) => (p.horizontal ? null : `0`)};
   bottom: ${(p) => (p.horizontal ? `55px` : null)};
   left: ${(p) => (p.horizontal ? `-12px` : `55px`)};
@@ -170,13 +176,13 @@ const ToolbarLogo = styled.div<{
 }>`
   width: 50px;
   height: 50px;
-  background-color: #044e54;
+  background-color: var(--color-accent);
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 14px;
   font-weight: bold;
-  color: rgba(255, 255, 255, 1);
+  color: var(--color-accent-contrast);
   font-family: folkard, palitino, serif;
   line-height: 2;
   cursor: ${(props) => props.cursor};

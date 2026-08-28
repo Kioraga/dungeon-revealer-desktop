@@ -228,7 +228,7 @@ const ChatMessage_SharedResourceChatMessageFragment = graphql`
 `;
 
 const NoteCard = styled.div`
-  border: 0.5px solid lightgrey;
+  border: 0.5px solid var(--color-border);
   border-radius: 2px;
 `;
 

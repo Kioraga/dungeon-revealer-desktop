@@ -1,0 +1,16 @@
+/* Default (light) theme — mirrors the classic UI palette. */
+:root {
+  --color-accent: #044e54;
+  --color-accent-hover: #03464b;
+  --color-accent-contrast: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-hover: #f0f4f8;
+  --color-border: #cbd2d9;
+  --color-text: #3e4c58;
+  --color-text-muted: #9eb2c7;
+  --color-toolbar-active: #223c07;
+  --color-danger: #ba2525;
+  --color-success: #247305;
+  --color-scrollbar: #d1d1d1;
+  --color-scrollbar-hover: #b3b3b3;
+}

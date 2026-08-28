@@ -21,6 +21,8 @@ import type { SpringValue } from "react-spring";
 import { useWindowDimensions } from "./hooks/use-window-dimensions";
 import { SplashShareImage } from "./splash-share-image";
 import { usePersistedState } from "./hooks/use-persisted-state";
+import { useI18n } from "./i18n";
+import { useThemeSettings } from "./theme-settings";
 
 // Logs panel always starts hidden; the DM opens it with the toggle button.
 const useShowChatState = () => React.useState<"show" | "hidden">("hidden");
@@ -55,9 +57,39 @@ const IconContainer = styled(animated.div)`
 const Aside = styled.div<{ width: number }>`
   height: 100%;
   width: ${(p) => p.width}px;
-  border-left: 1px solid lightgrey;
+  border-left: 1px solid var(--color-border);
   pointer-events: all;
-  background: #fff;
+  background: var(--color-surface);
+`;
+
+const ThemeMenu = styled.div`
+  position: absolute;
+  top: 40px;
+  right: 0;
+  z-index: 30;
+  min-width: 160px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+`;
+
+const ThemeMenuItem = styled.button<{ isActive: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  color: ${(p) => (p.isActive ? "var(--color-accent)" : "var(--color-text)")};
+  font-size: 14px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--color-surface-hover);
+  }
 `;
 
 const CHAT_WIDTH = 400;
@@ -107,6 +139,19 @@ const AuthenticatedAppShellRenderer: React.FC<{
   }, [logIn, isDm]);
 
   const [showSearch, setShowSearch] = React.useState(false);
+
+  const { t } = useI18n();
+  const { themeId, setThemeId, themes } = useThemeSettings();
+  const [showThemeMenu, setShowThemeMenu] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!showThemeMenu) return;
+    const onKey = (ev: KeyboardEvent) => {
+      if (ev.keyCode === 27) setShowThemeMenu(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [showThemeMenu]);
 
   React.useEffect(() => {
     if (!isLoggedIn) return;
@@ -172,6 +217,50 @@ const AuthenticatedAppShellRenderer: React.FC<{
                       >
                         <Icon.Search boxSize="20px" />
                       </IconButton>
+                      <div
+                        style={{
+                          position: "relative",
+                          pointerEvents: "all",
+                          marginRight: 8,
+                        }}
+                      >
+                        <IconButton
+                          title={t("Theme")}
+                          aria-label={t("Theme")}
+                          onClick={() => setShowThemeMenu((show) => !show)}
+                        >
+                          <Icon.Palette boxSize="20px" />
+                        </IconButton>
+                        {showThemeMenu ? (
+                          <React.Fragment>
+                            <div
+                              style={{
+                                position: "fixed",
+                                inset: 0,
+                                zIndex: 25,
+                              }}
+                              onClick={() => setShowThemeMenu(false)}
+                            />
+                            <ThemeMenu>
+                              {themes.map((theme) => (
+                                <ThemeMenuItem
+                                  key={theme.id}
+                                  isActive={theme.id === themeId}
+                                  onClick={() => {
+                                    setThemeId(theme.id);
+                                    setShowThemeMenu(false);
+                                  }}
+                                >
+                                  <span>{theme.name}</span>
+                                  {theme.id === themeId ? (
+                                    <Icon.Check boxSize="16px" />
+                                  ) : null}
+                                </ThemeMenuItem>
+                              ))}
+                            </ThemeMenu>
+                          </React.Fragment>
+                        ) : null}
+                      </div>
                       <ChatToggleButton
                         hasUnreadMessages={hasUnreadMessages}
                         onClick={() => {

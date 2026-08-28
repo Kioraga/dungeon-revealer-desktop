@@ -54,7 +54,8 @@ export const AuthenticationScreen: React.FC<{
         }}
       >
         <Input
-          background="white"
+          background="var(--color-surface)"
+          color="var(--color-text)"
           placeholder={
             requiredRole === "DM" ? t("DM Password") : t("Player Password")
           }

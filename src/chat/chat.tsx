@@ -53,7 +53,8 @@ const ChatQuery = graphql`
 
 const ChatWindow = styled.div`
   padding: 12px;
-  background-color: #fff;
+  background-color: var(--color-surface);
+  color: var(--color-text);
   font-size: 12px;
   height: 100%;
   display: flex;
@@ -74,7 +75,7 @@ const ChatTitle = styled.span`
   transform: translateX(-50%);
   font-weight: 700;
   font-size: 13px;
-  color: rgb(62, 76, 88);
+  color: var(--color-text);
   letter-spacing: 0.5px;
 `;
 
@@ -82,16 +83,20 @@ const SettingsButton = styled.button<{ isActive: boolean }>`
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  border: 1px solid ${(p) => (p.isActive ? "#044e54" : "rgb(203, 210, 217)")};
-  background-color: ${(p) => (p.isActive ? "#044e54" : "#fff")};
-  color: ${(p) => (p.isActive ? "#fff" : "rgb(62, 76, 88)")};
+  border: 1px solid
+    ${(p) => (p.isActive ? "var(--color-accent)" : "var(--color-border)")};
+  background-color: ${(p) =>
+    p.isActive ? "var(--color-accent)" : "var(--color-surface)"};
+  color: ${(p) =>
+    p.isActive ? "var(--color-accent-contrast)" : "var(--color-text)"};
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   padding: 0;
   &:hover {
-    background-color: ${(p) => (p.isActive ? "#044e54" : "#f0f4f8")};
+    background-color: ${(p) =>
+      p.isActive ? "var(--color-accent)" : "var(--color-surface-hover)"};
   }
 `;
 

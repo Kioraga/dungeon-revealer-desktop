@@ -46,7 +46,7 @@ export const ColorPickerInput = (props: {
                   width="55px"
                   height="100%"
                   borderRightRadius="0.375em"
-                  borderLeft="1px solid #E2E8F0"
+                  borderLeft="1px solid var(--color-border)"
                 />
               </PopoverTrigger>
               <PopoverContent width="max-content" p={2}>
