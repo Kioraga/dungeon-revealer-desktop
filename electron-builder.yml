@@ -1,5 +1,5 @@
 appId: io.github.dungeon-revealer.desktop
-productName: Dungeon Revealer
+productName: Dungeon Revealer Desktop
 directories:
   output: release
 files:
