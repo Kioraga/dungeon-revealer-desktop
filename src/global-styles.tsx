@@ -24,7 +24,7 @@ export const globalStyles = css`
     follows the active theme. Chakra reads these vars at render time. */
     --chakra-colors-gray-50: var(--color-surface);
     --chakra-colors-gray-100: var(--color-surface-hover);
-    --chakra-colors-gray-200: var(--color-surface-hover);
+    --chakra-colors-gray-200: var(--color-border);
     --chakra-colors-gray-300: var(--color-border);
     --chakra-colors-gray-400: var(--color-text-muted);
     --chakra-colors-gray-500: var(--color-text-muted);

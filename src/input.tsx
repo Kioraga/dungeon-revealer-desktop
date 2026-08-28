@@ -2,8 +2,7 @@ import React from "react";
 import styled from "@emotion/styled/macro";
 
 const InputInner = styled.input`
-  border: none;
-  box-shadow: rgba(22, 23, 26, 0.15) 0px 0px 5px;
+  border: 1px solid var(--color-border);
   background-color: var(--color-surface);
   color: var(--color-text);
 
@@ -26,7 +25,7 @@ const InputInner = styled.input`
 
   &:focus,
   &:hover {
-    box-shadow: rgba(22, 23, 26, 0.3) 0px 0px 5px;
+    border-color: var(--color-accent);
   }
 `;
 
