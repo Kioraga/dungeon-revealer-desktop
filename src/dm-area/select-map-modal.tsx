@@ -269,6 +269,7 @@ const ActiveMap = (props: {
         <div>
           <Button.Tertiary
             tabIndex={2}
+            danger
             onClick={() => {
               props.setModalState({
                 type: ModalType.DELETE_MAP,

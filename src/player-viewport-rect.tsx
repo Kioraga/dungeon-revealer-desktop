@@ -209,7 +209,7 @@ export const PlayerViewportRect = ({
             height: 0,
             borderLeft: "7px solid transparent",
             borderRight: "7px solid transparent",
-            borderBottom: "11px solid #4fd1c5",
+            borderBottom: "11px solid var(--color-accent)",
             pointerEvents: "none",
           }}
         />

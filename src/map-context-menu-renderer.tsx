@@ -176,7 +176,9 @@ export const ContextMenuRenderer = (props: {
                 }}
                 isDisabled={selectedItems.size == 0}
               >
-                Delete tokens ({selectedItems.size})
+                <span style={{ color: "var(--color-danger)" }}>
+                  Delete tokens ({selectedItems.size})
+                </span>
               </MenuItem>
             </>
           ) : state.target?.type === "token" ? (
@@ -206,7 +208,7 @@ export const ContextMenuRenderer = (props: {
                   }
                 }}
               >
-                Delete
+                <span style={{ color: "var(--color-danger)" }}>Delete</span>
               </MenuItem>
             </>
           ) : (

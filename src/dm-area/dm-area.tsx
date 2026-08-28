@@ -116,7 +116,8 @@ const ViewModeButton = styled.button<{ isActive: boolean }>`
   position: relative;
   border: none;
   background: transparent;
-  color: ${(p) => (p.isActive ? "#fff" : "rgba(255,255,255,0.7)")};
+  color: ${(p) =>
+    p.isActive ? "var(--color-accent-contrast)" : "rgba(255,255,255,0.7)"};
   font-size: 13px;
   font-weight: 600;
   padding: 6px 18px;
