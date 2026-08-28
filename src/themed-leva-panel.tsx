@@ -61,7 +61,7 @@ export const ThemedLevaPanel = (
   // Leva resolves its root text color ($rootText) as the inherited color, so
   // the panel title follows the theme instead of staying black.
   return (
-    <div style={{ color: "var(--color-text)" }}>
+    <div className="dr-leva-panel" style={{ color: "var(--color-text)" }}>
       <LevaPanel {...props} theme={theme} />
     </div>
   );

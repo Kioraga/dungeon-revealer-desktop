@@ -33,6 +33,7 @@ export const globalStyles = css`
     --chakra-colors-gray-700: var(--color-text);
     --chakra-colors-gray-800: var(--color-text);
     --chakra-colors-gray-900: var(--color-text);
+    --chakra-colors-white: var(--color-surface);
   }
 
   @font-face {
@@ -115,6 +116,18 @@ export const globalStyles = css`
 
   .no-focus-outline *:focus {
     outline: none !important;
+  }
+
+  /* Leva checkboxes: visible unchecked, accent when checked (leva's own
+  colors use the surface ramp, so they vanish on dark panels). */
+  .dr-leva-panel input[type="checkbox"] + label {
+    background-color: var(--color-border) !important;
+  }
+  .dr-leva-panel input[type="checkbox"]:checked + label {
+    background-color: var(--color-accent) !important;
+  }
+  .dr-leva-panel input[type="checkbox"]:checked + label svg {
+    stroke: var(--color-accent-contrast) !important;
   }
 
   /* Custom scrollbar, themable via --color-scrollbar* */
