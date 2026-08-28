@@ -17,6 +17,7 @@ export const es: Record<string, string> = {
   "Try again.": "Inténtalo de nuevo.",
   "Loading...": "Cargando...",
   "Ready.": "Listo.",
+  "Unsupported file type.": "Tipo de archivo no soportado.",
 
   // Map library
   "Map Library": "Mapas",
@@ -189,8 +190,7 @@ export const es: Record<string, string> = {
   "Entry Point": "Punto de entrada",
   "Only the DM can access this note.": "Solo el DM puede acceder a esta nota.",
   "Everyone can access this note.": "Todos pueden acceder a esta nota.",
-  "Whether the note is a entry point.":
-    "Si la nota es un punto de entrada.",
+  "Whether the note is a entry point.": "Si la nota es un punto de entrada.",
   "Delete Note": "Eliminar nota",
   "Do you really want to delete this note?":
     "¿Seguro que quieres eliminar esta nota?",

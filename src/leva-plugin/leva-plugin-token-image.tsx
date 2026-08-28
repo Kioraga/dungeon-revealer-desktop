@@ -233,10 +233,12 @@ const TokenImageList = (props: {
               if (!ev.target.files) {
                 return;
               }
-              props.onSelectFile(
-                ev.target.files[0]!,
-                pagination.data.tokenImages?.__id!
-              );
+              const file = ev.target.files[0]!;
+              // GTK's "Custom Files" fallback can bypass accept="image/*".
+              if (!file.type.startsWith("image/")) {
+                return;
+              }
+              props.onSelectFile(file, pagination.data.tokenImages?.__id!);
             }}
           />
           {props.titleFilter === "" ? (

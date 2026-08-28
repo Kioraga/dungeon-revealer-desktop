@@ -46,7 +46,7 @@ const extractDefaultTitleFromFileName = (fileName: string) => {
   return parts.join(".");
 };
 
-const validImageFileTypes = ["image/png", "image/jpeg"];
+const validImageFileTypes = ["image/png", "image/jpeg", "image/svg+xml"];
 const validNoteImportFileTypes = ["application/zip", "text/markdown"];
 
 const ImportFileModal_MapImageRequestUploadMutation = graphql`
@@ -510,7 +510,7 @@ export const ImportFileModal: React.FC<{
   const { t } = useI18n();
   if (validImageFileTypes.includes(file.type)) {
     return <ImageImportModal file={file} close={close} />;
-  } else if (validNoteImportFileTypes) {
+  } else if (validNoteImportFileTypes.includes(file.type)) {
     return <NoteImportModal file={file} close={close} />;
   } else {
     return (
