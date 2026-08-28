@@ -1,4 +1,6 @@
 // Typings for the Electron preload bridge. Undefined when running in a plain browser (dev).
+export type Locale = "en" | "es";
+
 export type DesktopDisplay = {
   id: number;
   label: string;
@@ -14,6 +16,9 @@ declare global {
       openPlayerWindow: (displayId?: number | string) => Promise<void>;
       setPlayerDisplay: (displayId: number | string) => Promise<void>;
       closePlayerWindow: () => Promise<void>;
+      getLocale: () => Promise<Locale>;
+      setLocale: (locale: Locale) => Promise<void>;
+      onLocaleChanged: (callback: (locale: Locale) => void) => () => void;
     };
   }
 }

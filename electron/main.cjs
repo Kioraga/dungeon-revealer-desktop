@@ -2,9 +2,10 @@
 // and opens two windows: the DM window and the fullscreen player window.
 // ponytail: Linux ships as AppImage via electron-builder (see electron-builder.yml, .github/workflows/release-build.yml); win/mac still use electron-packager folders.
 // ponytail: the server listens on an ephemeral 127.0.0.1 port per launch, so no fixed port is exposed and browsers can't reach it. The socket must stay: Electron's renderer talks to the in-process server over HTTP/WebSocket.
-const { app, BrowserWindow, ipcMain, screen } = require("electron");
+const { app, BrowserWindow, ipcMain, screen, Menu, dialog } = require("electron");
 const path = require("path");
 const fs = require("fs");
+const pkg = require("../package.json");
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();
@@ -17,12 +18,172 @@ if (!app.requestSingleInstanceLock()) {
   let mainWindow = null;
   let playerWindow = null;
 
+  // --- i18n: menu labels + About are localized per current locale. -----------
+  // ponytail: only menu/About live in main (renderer has its own dictionary in
+  // src/i18n). Known locales are the ones with a translation; everything else
+  // falls back to English per spec. Add a locale here AND in src/i18n.
+  const PRODUCT_NAME = "Dungeon Revealer Desktop";
+  const authors = [pkg.author, ...(pkg.contributors || [])].join(", ");
+  const KNOWN_LOCALES = ["en", "es"];
+  const LANGUAGE_NAMES = { en: "English", es: "Español" };
+  const MENU_TEXT = {
+    en: {
+      about: "About", language: "Language", quit: "Quit", edit: "Edit", view: "View", help: "Help",
+      showMenuBar: "Show Menu Bar",
+      undo: "Undo", redo: "Redo", cut: "Cut", copy: "Copy", paste: "Paste", selectAll: "Select All",
+      reload: "Reload", toggleDevTools: "Toggle Developer Tools", resetZoom: "Reset Zoom",
+      zoomIn: "Zoom In", zoomOut: "Zoom Out", toggleFullScreen: "Toggle Full Screen",
+    },
+    es: {
+      about: "Acerca de", language: "Idioma", quit: "Salir", edit: "Editar", view: "Ver", help: "Ayuda",
+      showMenuBar: "Mostrar barra de menú",
+      undo: "Deshacer", redo: "Rehacer", cut: "Cortar", copy: "Copiar", paste: "Pegar", selectAll: "Seleccionar todo",
+      reload: "Recargar", toggleDevTools: "Alternar herramientas de desarrollador", resetZoom: "Restablecer zoom",
+      zoomIn: "Acercar", zoomOut: "Alejar", toggleFullScreen: "Alternar pantalla completa",
+    },
+  };
+  const ABOUT_TEXT = {
+    en: {
+      title: "About Dungeon Revealer",
+      description:
+        "Show your tabletop RPG maps to players on a projector or second screen.",
+      author: "Author",
+      license: "License",
+      ok: "OK",
+    },
+    es: {
+      title: "Acerca de Dungeon Revealer",
+      description:
+        "Muestra los mapas de tu juego de rol a los jugadores en un proyector o segunda pantalla.",
+      author: "Autor",
+      license: "Licencia",
+      ok: "Aceptar",
+    },
+  };
+
+  const normalizeLocale = (raw) =>
+    KNOWN_LOCALES.includes(raw) ? raw : "en";
+
+  const localeFile = () => path.join(app.getPath("userData"), "locale");
+
+  const resolveLocale = () => {
+    try {
+      const saved = fs.readFileSync(localeFile(), "utf8").trim();
+      if (KNOWN_LOCALES.includes(saved)) return saved;
+    } catch {
+      // first launch: no saved choice, use the system locale
+    }
+    return normalizeLocale((app.getLocale() || "en").split("-")[0]);
+  };
+
+  const showAbout = (locale) => {
+    const text = ABOUT_TEXT[locale] || ABOUT_TEXT.en;
+    dialog.showMessageBox(mainWindow, {
+      type: "info",
+      title: text.title,
+      message: `${PRODUCT_NAME} v${app.getVersion()}`,
+      detail: `${text.description}\n\n${text.author}: ${authors}\n${text.license}: ${pkg.license}`,
+      buttons: [text.ok],
+    });
+  };
+
+  const setLocale = (locale) => {
+    const normalized = normalizeLocale(locale);
+    fs.writeFileSync(localeFile(), normalized);
+    buildMenu(normalized);
+    for (const win of BrowserWindow.getAllWindows()) {
+      win.webContents.send("locale-changed", normalized);
+    }
+  };
+
+  // Menu bar visibility toggle (persisted, like the locale).
+  const menuBarVisibleFile = () =>
+    path.join(app.getPath("userData"), "menu-bar-visible");
+  let menuBarVisible = false;
+  const readMenuBarVisible = () => {
+    try {
+      return fs.readFileSync(menuBarVisibleFile(), "utf8").trim() === "1";
+    } catch {
+      return false;
+    }
+  };
+  const setMenuBarVisible = (visible) => {
+    menuBarVisible = visible;
+    fs.writeFileSync(menuBarVisibleFile(), visible ? "1" : "0");
+    for (const win of BrowserWindow.getAllWindows()) {
+      win.setAutoHideMenuBar(!visible);
+      win.setMenuBarVisibility(visible);
+    }
+    buildMenu(resolveLocale());
+  };
+
+  const buildMenu = (locale) => {
+    const text = MENU_TEXT[locale] || MENU_TEXT.en;
+    const template = [
+      {
+        // Replaces the default File menu: language switch, menu bar toggle + quit.
+        label: PRODUCT_NAME,
+        submenu: [
+          {
+            label: text.language,
+            submenu: KNOWN_LOCALES.map((code) => ({
+              label: LANGUAGE_NAMES[code],
+              type: "radio",
+              checked: locale === code,
+              click: () => setLocale(code),
+            })),
+          },
+          { type: "separator" },
+          {
+            label: text.showMenuBar,
+            type: "checkbox",
+            checked: menuBarVisible,
+            click: (item) => setMenuBarVisible(item.checked),
+          },
+          { type: "separator" },
+          { label: text.quit, role: "quit" },
+        ],
+      },
+      {
+        label: text.edit,
+        submenu: [
+          { label: text.undo, role: "undo", accelerator: "CmdOrCtrl+Z" },
+          { label: text.redo, role: "redo", accelerator: "CmdOrCtrl+Shift+Z" },
+          { type: "separator" },
+          { label: text.cut, role: "cut", accelerator: "CmdOrCtrl+X" },
+          { label: text.copy, role: "copy", accelerator: "CmdOrCtrl+C" },
+          { label: text.paste, role: "paste", accelerator: "CmdOrCtrl+V" },
+          { label: text.selectAll, role: "selectAll", accelerator: "CmdOrCtrl+A" },
+        ],
+      },
+      {
+        label: text.view,
+        submenu: [
+          { label: text.reload, role: "reload", accelerator: "CmdOrCtrl+R" },
+          { label: text.toggleDevTools, role: "toggleDevTools", accelerator: "F12" },
+          { type: "separator" },
+          { label: text.resetZoom, role: "resetZoom", accelerator: "CmdOrCtrl+0" },
+          { label: text.zoomIn, role: "zoomIn", accelerator: "CmdOrCtrl+=" },
+          { label: text.zoomOut, role: "zoomOut", accelerator: "CmdOrCtrl+-" },
+          { type: "separator" },
+          { label: text.toggleFullScreen, role: "togglefullscreen", accelerator: "F11" },
+        ],
+      },
+      {
+        label: text.help,
+        role: "help",
+        submenu: [{ label: text.about, click: () => showAbout(locale) }],
+      },
+    ];
+    Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+  };
+
   const createMainWindow = () => {
     mainWindow = new BrowserWindow({
       width: 1400,
       height: 900,
       icon: path.join(__dirname, "..", "build", "images", "icons", "android-chrome-512x512.png"),
-      autoHideMenuBar: true,
+      autoHideMenuBar: !menuBarVisible,
       webPreferences: {
         preload: path.join(__dirname, "preload.cjs"),
         contextIsolation: true,
@@ -126,6 +287,9 @@ if (!app.requestSingleInstanceLock()) {
   };
 
   app.whenReady().then(async () => {
+    ipcMain.handle("locale:get", () => resolveLocale());
+    ipcMain.handle("locale:set", (_, locale) => setLocale(locale));
+
     ipcMain.handle("displays:list", async () => {
       const displays = screen.getAllDisplays().map(
         ({ id, label, bounds, isPrimary }) => ({
@@ -195,6 +359,10 @@ if (!app.requestSingleInstanceLock()) {
 
     // The renderer needs the URL, so resolve it from the OS-assigned port.
     appUrl = `http://127.0.0.1:${port}`;
+
+    const locale = resolveLocale();
+    menuBarVisible = readMenuBarVisible();
+    buildMenu(locale);
 
     createMainWindow();
 
