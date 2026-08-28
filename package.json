@@ -4,8 +4,7 @@
   "description": "Show your tabletop RPG maps to players on a projector or second screen.",
   "main": "electron/main.cjs",
   "license": "ISC",
-  "author": "apclary",
-  "contributors": ["kioraga"],
+  "author": "apclary, kioraga",
   "scripts": {
     "prebuild": "node scripts/prebuild.js",
     "build:frontend": "node scripts/copy-monaco-editor-files.js && npm run relay-compiler && vite build --base=./",
