@@ -382,7 +382,7 @@ const TokenRenderer = (props: {
       labelColor: {
         type: LevaInputs.COLOR,
         label: t("Title Color"),
-        value: token.labelColor ?? "rgb(0, 0, 0)",
+        value: token.labelColor ?? "#000000",
         onChange: (labelColor: string, _, { initial, fromPanel }) => {
           if (initial || !fromPanel) {
             return;
@@ -395,7 +395,7 @@ const TokenRenderer = (props: {
       color: {
         type: LevaInputs.COLOR,
         label: t("Color"),
-        value: token.color ?? "rgb(255, 255, 255)",
+        value: token.color ?? "#ffffff",
         onChange: (color: string, _, { initial, fromPanel }) => {
           if (initial || !fromPanel) {
             return;
