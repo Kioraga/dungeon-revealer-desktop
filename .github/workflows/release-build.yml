@@ -31,11 +31,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libfuse2 || sudo apt-get install -y libfuse2t64
-          npx --yes electron-builder@23.6.0 --linux AppImage --x64 --publish never
+          npx --yes electron-builder@26.15.3 --linux AppImage --x64 --publish never
       - name: Package MSI (windows)
         if: matrix.platform != 'linux'
         shell: bash
-        run: npx --yes electron-builder@23.6.0 --win msi --x64 --publish never
+        run: npx --yes electron-builder@26.15.3 --win msi --x64 --publish never
       - name: Upload to GitHub release
         shell: bash
         env:
