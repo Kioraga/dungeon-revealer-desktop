@@ -294,11 +294,14 @@ export const MediaLibrary: React.FC<MediaLibraryProps> = ({ onClose }) => {
           </Modal.Heading2>
           <div style={{ flex: 1, textAlign: "right" }}>
             <Button.Tertiary
+              small
+              iconOnly
               tabIndex={1}
               style={{ marginLeft: 8 }}
               onClick={onClose}
+              title={t("Close")}
             >
-              {t("Close")}
+              <Icon.X boxSize="16px" />
             </Button.Tertiary>
           </div>
         </Modal.Header>
