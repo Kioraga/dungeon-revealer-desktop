@@ -223,6 +223,9 @@ if (!app.requestSingleInstanceLock()) {
     playerWindow.on("closed", () => {
       playerWindow = null;
     });
+    // Wayland ignores x/y (the compositor places windows), so reposition via
+    // KWin scripting after the window is registered.
+    await movePlayerWindowToDisplay(display);
   };
 
   const closePlayerWindow = () => {
@@ -230,6 +233,71 @@ if (!app.requestSingleInstanceLock()) {
       playerWindow.close();
     }
     playerWindow = null;
+  };
+
+  // Wayland's compositor decides window placement — x/y in BrowserWindow are
+  // ignored, so the player window can't target a chosen monitor directly.
+  // KDE exposes workspace.sendClientToScreen via KWin scripting (DBus), the
+  // only reliable way to move a window to an output under Wayland.
+  // ponytail: KDE-only; other compositors fall back to the active screen.
+  const movePlayerWindowToDisplay = async (display) => {
+    if (!playerWindow || playerWindow.isDestroyed()) return;
+    if (process.platform !== "linux" || !process.env.WAYLAND_DISPLAY) return;
+    try {
+      const outputs = await getWaylandOutputs();
+      if (!outputs) return;
+      const match =
+        outputs.find(
+          (o) => o.x === display.bounds.x && o.y === display.bounds.y
+        ) ||
+        outputs.find(
+          (o) =>
+            Math.abs(o.x - display.bounds.x) <= 2 &&
+            Math.abs(o.y - display.bounds.y) <= 2
+        );
+      if (!match) return;
+      const script = [
+        "var outs = workspace.screens;",
+        "var out = null;",
+        "for (var i = 0; i < outs.length; i++) {",
+        "  if (outs[i].name == '" + match.name + "') { out = outs[i]; break; }",
+        "}",
+        "if (out) {",
+        "  var wins = workspace.windowList();",
+        "  for (var i = 0; i < wins.length; i++) {",
+        "    if (wins[i].pid == " + process.pid + " && wins[i].fullScreen) {",
+        "      workspace.sendClientToScreen(wins[i], out);",
+        "      break;",
+        "    }",
+        "  }",
+        "}",
+      ].join("\n");
+      const { execFile } = require("child_process");
+      const { promisify } = require("util");
+      const run = promisify(execFile);
+      const scriptPath = path.join(app.getPath("userData"), "kwin-move-player.js");
+      fs.writeFileSync(scriptPath, script);
+      const { stdout } = await run("qdbus6", [
+        "org.kde.KWin",
+        "/Scripting",
+        "org.kde.kwin.Scripting.loadScript",
+        scriptPath,
+      ]);
+      const id = stdout.trim();
+      await run("qdbus6", [
+        "org.kde.KWin",
+        "/Scripting",
+        "org.kde.kwin.Scripting.start",
+      ]);
+      await run("qdbus6", [
+        "org.kde.KWin",
+        "/Scripting",
+        "org.kde.kwin.Scripting.unloadScript",
+        id,
+      ]);
+    } catch {
+      // no KWin / no qdbus: fall back to the compositor's default placement
+    }
   };
 
   // Real monitor names on Wayland: Electron's display.label is empty on Linux.
@@ -312,6 +380,7 @@ if (!app.requestSingleInstanceLock()) {
         const display = await resolveDisplay(displayKey);
         playerWindow.setBounds(display.bounds);
         playerWindow.setFullScreen(true);
+        await movePlayerWindowToDisplay(display);
       }
     });
     ipcMain.handle("player-window:close", () => closePlayerWindow());
