@@ -132,6 +132,10 @@ export const es: Record<string, string> = {
   Grid: "Cuadrícula",
   "Shroud All": "Ocultar todo",
   "Clear All": "Limpiar todo",
+  "Do you really want to shroud the whole map?":
+    "¿Seguro que quieres ocultar todo el mapa?",
+  "Do you really want to clear the whole map?":
+    "¿Seguro que quieres limpiar todo el mapa?",
   Notes: "Notas",
   Clipboard: "Portapapeles",
   Screen: "Pantalla",

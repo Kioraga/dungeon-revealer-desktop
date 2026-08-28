@@ -1,8 +1,10 @@
 import * as React from "react";
 import { Modal, ModalDialogSize } from "../modal";
 import * as Button from "../button";
+import { useI18n } from "../i18n";
 
 export const useConfirmationDialog = () => {
+  const { t } = useI18n();
   const [reactNode, setReactNode] = React.useState<React.ReactNode>(null);
 
   return [
@@ -12,8 +14,8 @@ export const useConfirmationDialog = () => {
         header,
         body,
         onConfirm,
-        confirmButtonText = "Confirm",
-        cancelButtonText = "Abort",
+        confirmButtonText = t("Confirm"),
+        cancelButtonText = t("Abort"),
       }: {
         header: React.ReactNode;
         body: React.ReactNode;
