@@ -25,6 +25,11 @@ type MediaLibraryItem = {
   title: string;
 };
 
+// The stored file path is `<id>.<extension>`; videos are detected by extension.
+const isVideoPath = (path: string) => /\.(mp4|webm|m4v)$/i.test(path);
+
+export const MEDIA_FILE_ACCEPT = "image/*,video/mp4,video/webm,video/x-m4v";
+
 type MediaLibraryState =
   | {
       mode: "LOADING";
@@ -272,7 +277,8 @@ export const MediaLibrary: React.FC<MediaLibraryProps> = ({ onClose }) => {
           });
         }
       });
-    }, [])
+    }, []),
+    MEDIA_FILE_ACCEPT
   );
 
   return (
@@ -340,11 +346,20 @@ const Item: React.FC<{
   const [showEditModal, setShowEditModal] = React.useState(false);
   const { t } = useI18n();
   const splashShareImage = useSplashShareImageAction();
+  const isVideo = isVideoPath(item.path);
 
   return (
     <ListItem>
       <ListItemImageContainer onClick={() => setShowLightBoxImage(true)}>
-        <ListItemImage src={buildApiUrl(`/images/${item.id}`)} />
+        {isVideo ? (
+          <ListItemVideo
+            src={buildApiUrl(`/images/${item.id}`)}
+            muted
+            preload="metadata"
+          />
+        ) : (
+          <ListItemImage src={buildApiUrl(`/images/${item.id}`)} />
+        )}
       </ListItemImageContainer>
       <ListItemTitle>{item.title}</ListItemTitle>
       <Menu data-menu>
@@ -377,6 +392,7 @@ const Item: React.FC<{
         <ImageLightBoxModal
           src={buildApiUrl(`/images/${item.id}`)}
           close={() => setShowLightBoxImage(false)}
+          isVideo={isVideo}
         />
       ) : null}
       {showEditModal ? (
@@ -516,6 +532,11 @@ const ListItemImageContainer = styled.button`
 `;
 
 const ListItemImage = styled.img`
+  max-width: 100%;
+  max-height: 150px;
+`;
+
+const ListItemVideo = styled.video`
   max-width: 100%;
   max-height: 150px;
 `;

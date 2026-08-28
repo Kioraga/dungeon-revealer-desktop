@@ -52,6 +52,9 @@ type MediaLibraryItem = {
   title: string;
 };
 
+// This modal embeds images into notes — skip video items from the library.
+const isVideoPath = (path: string) => /\.(mp4|webm|m4v)$/i.test(path);
+
 type SelectLibraryImageState =
   | {
       mode: "LOADING";
@@ -202,21 +205,23 @@ export const SelectLibraryImageModal: React.FC<{
           <Grid>
             {state.mode === "LOADING"
               ? null
-              : state.items.map((item) => (
-                  <ListItem
-                    isActive={selectedFile === item}
-                    key={item.id}
-                    onClick={() =>
-                      dispatch({
-                        type: "SET_SELECTED_FILE_ID",
-                        data: { selectedFileId: item.id },
-                      })
-                    }
-                  >
-                    <ListItemImage src={buildApiUrl(`/images/${item.id}`)} />
-                    <ListItemTitle>{item.title}</ListItemTitle>
-                  </ListItem>
-                ))}
+              : state.items
+                  .filter((item) => !isVideoPath(item.path))
+                  .map((item) => (
+                    <ListItem
+                      isActive={selectedFile === item}
+                      key={item.id}
+                      onClick={() =>
+                        dispatch({
+                          type: "SET_SELECTED_FILE_ID",
+                          data: { selectedFileId: item.id },
+                        })
+                      }
+                    >
+                      <ListItemImage src={buildApiUrl(`/images/${item.id}`)} />
+                      <ListItemTitle>{item.title}</ListItemTitle>
+                    </ListItem>
+                  ))}
           </Grid>
         </Modal.Body>
         <Modal.Footer>

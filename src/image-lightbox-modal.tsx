@@ -8,6 +8,11 @@ const LightBoxImage = styled.img`
   overflow: scroll;
 `;
 
+const LightBoxVideo = styled.video`
+  max-width: 90vw;
+  max-height: 90vh;
+`;
+
 const ButtonBackground = styled.button`
   all: unset;
   display: block;
@@ -16,11 +21,16 @@ const ButtonBackground = styled.button`
 export const ImageLightBoxModal: React.FC<{
   src: string;
   close: () => void;
-}> = ({ src, close }) => {
+  isVideo?: boolean;
+}> = ({ src, close, isVideo = false }) => {
   return (
     <Modal onClickOutside={close} onPressEscape={close}>
       <ButtonBackground onClick={(ev) => ev.stopPropagation()}>
-        <LightBoxImage src={src} />
+        {isVideo ? (
+          <LightBoxVideo src={src} controls autoPlay />
+        ) : (
+          <LightBoxImage src={src} />
+        )}
       </ButtonBackground>
     </Modal>
   );
