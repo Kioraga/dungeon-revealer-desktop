@@ -22,7 +22,9 @@ if (!app.requestSingleInstanceLock()) {
   // ponytail: only menu/About live in main (renderer has its own dictionary in
   // src/i18n). Known locales are the ones with a translation; everything else
   // falls back to English per spec. Add a locale here AND in src/i18n.
-  const PRODUCT_NAME = "Dungeon Revealer Desktop";
+  const PRODUCT_NAME = "Dungeon Revealer";
+  // Menu bar shows the short name; the About dialog names the actual product.
+  const PRODUCT_DISPLAY_NAME = "Dungeon Revealer Desktop";
   const authors = [pkg.author, ...(pkg.contributors || [])].join(", ");
   const KNOWN_LOCALES = ["en", "es"];
   const LANGUAGE_NAMES = { en: "English", es: "Español" };
@@ -81,7 +83,7 @@ if (!app.requestSingleInstanceLock()) {
     dialog.showMessageBox(mainWindow, {
       type: "info",
       title: text.title,
-      message: `${PRODUCT_NAME} v${app.getVersion()}`,
+      message: `${PRODUCT_DISPLAY_NAME} v${app.getVersion()}`,
       detail: `${text.description}\n\n${text.author}: ${authors}\n${text.license}: ${pkg.license}`,
       buttons: [text.ok],
     });
