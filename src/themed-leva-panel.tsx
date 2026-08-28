@@ -13,6 +13,11 @@ const DEFAULT_LEVA_THEME = {
     highlight1: "#b3b3b3",
     highlight2: "#000",
     highlight3: "#000",
+    vivid1: "#ffcc00",
+    folderWidgetColor: "#b3b3b3",
+    folderTextColor: "#000",
+    toolTipBackground: "#f7f7f7",
+    toolTipText: "#000",
   },
   fonts: {
     mono: "inherit",
@@ -27,21 +32,37 @@ export const ThemedLevaPanel = (
   const theme = React.useMemo(() => {
     const c = cssVars;
     const fallback = DEFAULT_LEVA_THEME.colors;
+    const surface = c["color-surface"] ?? fallback.elevation2;
+    const surfaceHover = c["color-surface-hover"] ?? fallback.elevation1;
+    const border = c["color-border"] ?? fallback.accent1;
+    const text = c["color-text"] ?? fallback.highlight2;
+    const textMuted = c["color-text-muted"] ?? fallback.highlight1;
     return {
       colors: {
-        elevation1: c["color-surface-hover"] ?? fallback.elevation1,
-        elevation2: c["color-surface"] ?? fallback.elevation2,
-        elevation3: c["color-surface"] ?? fallback.elevation3,
-        accent1: c["color-border"] ?? fallback.accent1,
-        accent2: c["color-surface-hover"] ?? fallback.accent2,
-        accent3: c["color-border"] ?? fallback.accent3,
-        highlight1: c["color-border"] ?? fallback.highlight1,
-        highlight2: c["color-text"] ?? fallback.highlight2,
-        highlight3: c["color-text"] ?? fallback.highlight3,
+        elevation1: surfaceHover,
+        elevation2: surface,
+        elevation3: surface,
+        accent1: border,
+        accent2: surfaceHover,
+        accent3: border,
+        highlight1: textMuted,
+        highlight2: text,
+        highlight3: text,
+        vivid1: fallback.vivid1,
+        folderWidgetColor: textMuted,
+        folderTextColor: text,
+        toolTipBackground: surfaceHover,
+        toolTipText: text,
       },
       fonts: DEFAULT_LEVA_THEME.fonts,
     };
   }, [cssVars]);
 
-  return <LevaPanel {...props} theme={theme} />;
+  // Leva resolves its root text color ($rootText) as the inherited color, so
+  // the panel title follows the theme instead of staying black.
+  return (
+    <div style={{ color: "var(--color-text)" }}>
+      <LevaPanel {...props} theme={theme} />
+    </div>
+  );
 };

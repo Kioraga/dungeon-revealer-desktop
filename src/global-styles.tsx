@@ -18,6 +18,20 @@ export const globalStyles = css`
     --color-success: #247305;
     --color-scrollbar: #d1d1d1;
     --color-scrollbar-hover: #b3b3b3;
+
+    /* Remap Chakra's runtime gray ramp to the theme tokens so every Chakra
+    component (buttons, inputs, headings, placeholders, steppers, menus)
+    follows the active theme. Chakra reads these vars at render time. */
+    --chakra-colors-gray-50: var(--color-surface);
+    --chakra-colors-gray-100: var(--color-surface-hover);
+    --chakra-colors-gray-200: var(--color-surface-hover);
+    --chakra-colors-gray-300: var(--color-border);
+    --chakra-colors-gray-400: var(--color-text-muted);
+    --chakra-colors-gray-500: var(--color-text-muted);
+    --chakra-colors-gray-600: var(--color-text);
+    --chakra-colors-gray-700: var(--color-text);
+    --chakra-colors-gray-800: var(--color-text);
+    --chakra-colors-gray-900: var(--color-text);
   }
 
   @font-face {
@@ -127,6 +141,29 @@ export const globalStyles = css`
   }
   .chakra-slider__filled-track {
     background-color: var(--color-accent) !important;
+  }
+
+  /* Chakra chrome follows theme tokens (focus rings, menus, tooltips). The
+  gray ramp remap above covers text/background of the components themselves. */
+  .chakra-tooltip {
+    background-color: var(--color-surface-hover) !important;
+    color: var(--color-text) !important;
+  }
+  .chakra-input:focus,
+  .chakra-input:focus-visible,
+  .chakra-select:focus,
+  .chakra-textarea:focus {
+    border-color: var(--color-accent) !important;
+    box-shadow: 0 0 0 1px var(--color-accent) !important;
+  }
+  .chakra-menu__menu-list {
+    background: var(--color-surface) !important;
+    border: 1px solid var(--color-border) !important;
+    color: var(--color-text) !important;
+  }
+  .chakra-menu__menuitem:hover,
+  .chakra-menu__menuitem:focus {
+    background: var(--color-surface-hover) !important;
   }
 
   .react-colorful__pointer {

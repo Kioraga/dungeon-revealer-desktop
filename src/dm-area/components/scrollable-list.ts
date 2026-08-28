@@ -26,17 +26,18 @@ export const ListItemButton = styled.button<{ isActive?: boolean }>`
   padding-left: 13px;
   padding-right: 20px;
   background-color: ${(p) =>
-    p.isActive ? "rgba(0, 0, 0, 0.04)" : "rgba(255, 255, 255, 1)"};
-  color: ${(p) => (p.isActive ? "#044e54" : "rgba(148, 160, 175, 1)")};
+    p.isActive ? "var(--color-surface-hover)" : "var(--color-surface)"};
+  color: ${(p) =>
+    p.isActive ? "var(--color-accent)" : "var(--color-text-muted)"};
 
   &:focus,
   &:hover {
-    background-color: rgba(0, 0, 0, 0.1);
-    color: #044e54;
+    background-color: var(--color-surface-hover);
+    color: var(--color-accent);
   }
 
   border-left: ${(p) =>
-    p.isActive ? "7px solid #BCCCDC" : "7px solid transparent"};
+    p.isActive ? "7px solid var(--color-accent)" : "7px solid transparent"};
 
   outline: none;
 `;

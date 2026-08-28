@@ -1,5 +1,4 @@
 import styled from "@emotion/styled/macro";
-import { lighten } from "polished";
 
 type ButtonBaseProps = {
   disabled?: boolean;
@@ -38,19 +37,19 @@ const ButtonBase = styled.button<ButtonBaseProps>`
 
 export const Primary = styled(ButtonBase)`
   border: none;
-  background-color: #044e54;
-  color: white;
+  background-color: var(--color-accent);
+  color: var(--color-accent-contrast);
 
   &:focus,
   &:hover {
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
-    background-color: #0a6c74;
+    background-color: var(--color-accent-hover);
   }
 `;
 
 export const Secondary = styled(ButtonBase)`
-  background-color: #d9e2ec;
-  color: black;
+  background-color: var(--color-surface-hover);
+  color: var(--color-text);
 
   &:hover {
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
@@ -64,10 +63,15 @@ export const Tertiary = styled(ButtonBase)<
 >`
   background-color: transparent;
   color: ${(p) =>
-    p.disabled ? lighten(0.3, "#627d98") : p.danger ? "#f44336" : "#627d98"};
+    p.disabled
+      ? "var(--color-text-muted)"
+      : p.danger
+      ? "var(--color-danger)"
+      : "var(--color-text)"};
   cursor: ${(p) => (p.disabled ? "inherit" : null)};
 
   &:hover {
-    background-color: ${(p) => (p.disabled ? null : "#f0f4f8")};
+    background-color: ${(p) =>
+      p.disabled ? null : "var(--color-surface-hover)"};
   }
 `;
