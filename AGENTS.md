@@ -45,10 +45,14 @@ js/json/md/html/ts/tsx/graphql).
   `/?map_only=true`. Renderer ↔ main IPC via `window.desktopApi`
   (`electron/preload.cjs`, typed in `src/desktop-api.d.ts`):
   `listDisplays`, `openPlayerWindow`, `setPlayerDisplay`, `closePlayerWindow`.
-- **Camera sync**: the DM-window mirror publishes `{cx, cy, scale}` (image
-  center + zoom relative to fit) on socket `viewState`; the server relays it
-  to all sockets (`io.emit`); the projector window applies it. The mirror's
-  camera is intentionally INDEPENDENT of the DM view's camera.
+- **Camera sync**: the DM-window mirror publishes `{cx, cy, scale, rotation}`
+  (image center + zoom + rotation relative to fit) on socket `viewState`; the
+  server relays it to all sockets (`socket.broadcast.emit`); the projector
+  window applies it. The mirror's camera is intentionally INDEPENDENT of the
+  DM view's camera (zoom in the Player tab zooms the projector). New: the
+  player window also emits `playerViewport {capW, capH}` (viewport size in
+  image px, resynced on resize) so the DM's viewport rectangle
+  (`player-viewport-rect.tsx`) keeps the projector window's shape.
 - **Both DM view and mirror stay mounted** (crossfade via opacity/visibility in
   `dm-area.tsx` `ViewFade`) so each keeps its camera/tool/brush state. No
   unmount/remount on view switch. Hidden canvas still renders (`ponytail:` on
@@ -81,7 +85,7 @@ js/json/md/html/ts/tsx/graphql).
 ## Gotchas
 
 - **Pre-existing tsc errors — do NOT "fix" them**: `OffscreenCanvas` +
-  implicit-any blob in `src/dm-area/dm-map.tsx` (~685/691) and
+  implicit-any blob in `src/dm-area/dm-map.tsx` (695/701) and
   `use-async-clipboard-api.ts`. `tsc --noEmit` should show ONLY those; any
   new error is yours.
 - **Adding a token field** (e.g. `labelColor`) requires the full chain:
