@@ -136,7 +136,6 @@ export const es: Record<string, string> = {
   Clipboard: "Portapapeles",
   Screen: "Pantalla",
   "Grid Settings": "Ajustes de cuadrícula",
-  "Edit Grid ": "Editar cuadrícula ",
   "Show Grid": "Mostrar cuadrícula",
   "Show Grid to players": "Mostrar cuadrícula a los jugadores",
   "Configure Grid": "Configurar cuadrícula",

@@ -309,7 +309,7 @@ const ShowGridSettingsPopup = React.memo(
 
             <Box>
               <Button.Tertiary small onClick={props.enterConfigureGridMode}>
-                <span>{t("Edit Grid ")}</span>
+                <span>{t("Edit")}</span>
                 <Icon.Settings boxSize="12px" />
               </Button.Tertiary>
             </Box>
