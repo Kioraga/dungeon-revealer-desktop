@@ -22,16 +22,25 @@ Order matters: after ANY change to `server/graphql/**` or `server/maps.ts`
 types, run `npm run write-schema` BEFORE `relay-compiler` — relay reads the
 generated `type-definitions.graphql` (never hand-edit it).
 
+`npm run eslint` lints ONLY `**/*.js` (server side) — TS/TSX is checked via
+`tsc --noEmit` (see Gotchas for known errors). Husky + lint-staged run
+eslint+prettier on staged files at commit (`prettier --write` covers
+js/json/md/html/ts/tsx/graphql).
+
 ## Architecture
 
 - **Versions are pinned for compatibility — do not bump**: Electron 16 (matches
   `@types/node@14`, TS 4.4.4; Electron 31 breaks tsc), Vite 2.7.3, Relay 10.
   `sqlite3` uses NAPI v6 and loads in Electron WITHOUT `@electron/rebuild`.
 - **Server runs in-process**: Electron boots `server-build/server.js`
-  (`bootstrapServer`) and binds `127.0.0.1` on an EPHEMERAL port (`listen 0`);
+  (`bootstrapServer`) and binds `127.0.0.1`, REBINDING the previous session's
+  port from `userData/server-port` (falls back to an ephemeral `listen 0` on
+  `EADDRINUSE`) so the localStorage origin stays stable across restarts;
   `appUrl` is resolved after listen in `electron/main.cjs`. Renderers talk
-  HTTP/WebSocket to that in-process server. `server-build/` and `dist` are
-  gitignored artifacts.
+  HTTP/WebSocket to that in-process server. Artifacts: vite `outDir` is
+  `build/` (gitignored, carries the icons/monaco electron-builder needs) and
+  tsc emits `server-build/`; electron-builder packages `build/` +
+  `server-build/` + `electron/` into `release/`. `dist` is vestigial.
 - **Two windows, one app**: DM window loads `/dm`, player window loads
   `/?map_only=true`. Renderer ↔ main IPC via `window.desktopApi`
   (`electron/preload.cjs`, typed in `src/desktop-api.d.ts`):
@@ -62,12 +71,19 @@ generated `type-definitions.graphql` (never hand-edit it).
   persisted).
 - `patches/` has patch-package fixes for relay-compiler, react-spring,
   use-sound — run `npm install` if patches are missing.
+- **i18n**: UI strings are English source, looked up by `useI18n().t()` against
+  the ES dictionary in `src/i18n/translations.ts` (missing key → English).
+  The Electron menu switches language (main persists it in `userData/locale`,
+  system locale is the default); `desktopApi.{getLocale,setLocale,onLocaleChanged}`
+  sync it to the renderer. Keys ARE the English strings — renaming one in the
+  UI silently drops its translation.
 
 ## Gotchas
 
-- **Pre-existing tsc errors — do NOT "fix" them**: `OffscreenCanvas` in
-  `src/dm-area/dm-map.tsx` (~666/688) and `use-async-clipboard-api.ts`.
-  `tsc --noEmit` should show ONLY those; any new error is yours.
+- **Pre-existing tsc errors — do NOT "fix" them**: `OffscreenCanvas` +
+  implicit-any blob in `src/dm-area/dm-map.tsx` (~685/691) and
+  `use-async-clipboard-api.ts`. `tsc --noEmit` should show ONLY those; any
+  new error is yours.
 - **Adding a token field** (e.g. `labelColor`) requires the full chain:
   `server/maps.ts` entity + `server/routes/map.js` PATCH + GraphQL type in
   `server/graphql/modules/map.ts` → `npm run write-schema` → `relay-compiler`
@@ -77,7 +93,9 @@ generated `type-definitions.graphql` (never hand-edit it).
   WebSocket URL and drive it with a small node WebSocket script. The app uses
   `requestSingleInstanceLock` — kill leftover electron processes before
   relaunching (a second instance quits immediately).
-- **localStorage state survives across launches** (same userData dir):
+- **localStorage state survives across launches** — localStorage is scoped to
+  the origin `http://127.0.0.1:PORT`, and the `userData/server-port` rebind is
+  what makes it survive (a fresh ephemeral port would reset it). State:
   `loadedMapId`, `dmPassword`, `settings.playerDisplayId`. Clearing
   `loadedMapId` in a CDP test makes later launches open the Map Library modal
   with no DM toolbar (and no Close button while no map is loaded — by design).
