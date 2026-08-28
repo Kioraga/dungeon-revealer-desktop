@@ -87,7 +87,7 @@ npm run write-schema        # regenerate GraphQL types
 ./node_modules/.bin/relay-compiler
 ```
 
-> Pinned versions: Electron 16, Vite 2.7, Relay 10. Don't upgrade without checking — they are tied together.
+> Pinned versions: Electron 31, Vite 2.7, Relay 10. Don't upgrade without checking — they are tied together.
 
 See `AGENTS.md` for architecture details.
 

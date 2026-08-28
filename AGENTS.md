@@ -29,8 +29,12 @@ js/json/md/html/ts/tsx/graphql).
 
 ## Architecture
 
-- **Versions are pinned for compatibility — do not bump**: Electron 16 (matches
-  `@types/node@14`, TS 4.4.4; Electron 31 breaks tsc), Vite 2.7.3, Relay 10.
+- **Versions are pinned for compatibility — do not bump**: Electron 31 (bundles
+  Node 20.18 + Chromium 126; nothing in `src/` imports `electron` so its
+  `electron.d.ts` never enters the type graph — `@types/node@14` + TS 4.4.4
+  keep working). Do NOT jump to Electron 44: its Chromium 152 GPU process
+  segfaults (exit 139) and its windows don't map on KDE Wayland on AMD/mesa
+  setups; 31 is the newest verified stable here. Vite 2.7.3, Relay 10.
   `sqlite3` uses NAPI v6 and loads in Electron WITHOUT `@electron/rebuild`.
 - **Server runs in-process**: Electron boots `server-build/server.js`
   (`bootstrapServer`) and binds `127.0.0.1`, REBINDING the previous session's
@@ -45,6 +49,11 @@ js/json/md/html/ts/tsx/graphql).
   `/?map_only=true`. Renderer ↔ main IPC via `window.desktopApi`
   (`electron/preload.cjs`, typed in `src/desktop-api.d.ts`):
   `listDisplays`, `openPlayerWindow`, `setPlayerDisplay`, `closePlayerWindow`.
+  On Wayland the compositor decides window placement (BrowserWindow `x/y` are
+  ignored), so `main.cjs` `movePlayerWindowToDisplay` repositions the player
+  window via KWin scripting over DBus (`workspace.sendClientToScreen`, matched
+  by output name from `wayland-info` + window pid). KDE-only; other
+  compositors fall back to the active screen.
 - **Camera sync**: the DM-window mirror publishes `{cx, cy, scale, rotation}`
   (image center + zoom + rotation relative to fit) on socket `viewState`; the
   server relays it to all sockets (`socket.broadcast.emit`); the projector
@@ -103,8 +112,8 @@ js/json/md/html/ts/tsx/graphql).
   `loadedMapId`, `dmPassword`, `settings.playerDisplayId`. Clearing
   `loadedMapId` in a CDP test makes later launches open the Map Library modal
   with no DM toolbar (and no Close button while no map is loaded — by design).
-- Screen-display names on Wayland come from `wayland-info` parsing in
-  `electron/main.cjs` (`display.label` is empty on Linux).
+- Screen-display names on Wayland come from `display.label` (populated in
+  Electron 31) or `wayland-info` parsing as fallback in `electron/main.cjs`.
 - The bash tool wrapper mangles complex one-liners with `pkill`/`(... &)`
   backgrounding — use `nohup ... &` + a PID file instead.
 - Commits are English, conventional (fix:/feat:/refactor:); never mix

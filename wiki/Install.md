@@ -2,7 +2,7 @@ Dungeon Revealer Desktop is a local Electron app. No server to host, no docker i
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/) (14+)
+- [Node.js](https://nodejs.org/) (16+)
 - npm
 
 ## Install & run
