@@ -7,10 +7,12 @@ import {
 import { Box, Button, HStack } from "@chakra-ui/react";
 import { useNoteWindowActions } from "../dm-area/token-info-aside";
 import { useShowSelectNoteModal } from "../dm-area/select-note-modal";
+import { useI18n } from "../i18n";
 
 const { Row, Label } = LevaComponents;
 
 const NoteReference = () => {
+  const { t } = useI18n();
   const { displayValue, setValue } = useInputContext<any>();
   const noteWindowActions = useNoteWindowActions();
 
@@ -19,19 +21,19 @@ const NoteReference = () => {
     <>
       {reactNode}
       <Row input>
-        <Label>Reference</Label>
+        <Label>{t("Reference")}</Label>
 
         <HStack alignItems="center" spacing={1}>
           {displayValue ? (
             <>
-              <Box justifySelf="flexStart">Note</Box>
+              <Box justifySelf="flexStart">{t("Note")}</Box>
               <Button
                 size="xs"
                 onClick={() => {
                   setValue(null);
                 }}
               >
-                Remove
+                {t("Remove")}
               </Button>
               <Button
                 size="xs"
@@ -39,7 +41,7 @@ const NoteReference = () => {
                   noteWindowActions.focusOrShowNoteInNewWindow(displayValue);
                 }}
               >
-                Edit
+                {t("Edit")}
               </Button>
             </>
           ) : (
@@ -51,7 +53,7 @@ const NoteReference = () => {
                 });
               }}
             >
-              Link
+              {t("Link")}
             </Button>
           )}
         </HStack>

@@ -19,6 +19,7 @@ import { DiceRoller } from "./dice-roller";
 import { chatMessageSoundSubscription } from "./__generated__/chatMessageSoundSubscription.graphql";
 import { useSoundSettings } from "../sound-settings";
 import { useStaticRef } from "../hooks/use-static-ref";
+import { useI18n } from "../i18n";
 
 const AppSubscription = graphql`
   subscription chatSubscription {
@@ -169,6 +170,7 @@ export const useChatSoundsAndUnreadCount = (
 export const Chat: React.FC<{
   toggleShowDiceRollNotes: () => void;
 }> = React.memo(({ toggleShowDiceRollNotes }) => {
+  const { t } = useI18n();
   const [mode, setMode] = React.useState<"chat" | "settings">("chat");
 
   useSubscription<chatSubscription>(
@@ -218,7 +220,7 @@ export const Chat: React.FC<{
       }}
     >
       <ChatHeader>
-        <ChatTitle>Logs</ChatTitle>
+        <ChatTitle>{t("Logs")}</ChatTitle>
         <SettingsButton
           isActive={mode === "settings"}
           onClick={() => setMode(mode === "settings" ? "chat" : "settings")}
@@ -235,7 +237,7 @@ export const Chat: React.FC<{
             onClick={toggleShowDiceRollNotes}
             style={{ marginTop: 8 }}
           >
-            <Icon.Dice boxSize="16px" /> <span> Dice Roll Notes</span>
+            <Icon.Dice boxSize="16px" /> <span> {t("Dice Roll Notes")}</span>
           </Button.Tertiary>
         </Stack>
       ) : mode === "settings" ? (

@@ -2,6 +2,7 @@ import * as React from "react";
 import { FormControl, FormLabel, Switch } from "@chakra-ui/react";
 import styled from "@emotion/styled/macro";
 import { useSoundSettings } from "../sound-settings";
+import { useI18n } from "../i18n";
 
 const LabelText = styled.div`
   font-weight: bold;
@@ -12,6 +13,7 @@ const LabelText = styled.div`
 
 // Local desktop app: the DM nickname is fixed. Only the dice sound is configurable.
 export const ChatSettings: React.FC<{}> = () => {
+  const { t } = useI18n();
   const soundSettings = useSoundSettings();
   const diceSoundEnabled = soundSettings.value !== "none";
 
@@ -23,7 +25,7 @@ export const ChatSettings: React.FC<{}> = () => {
         justifyContent="space-between"
       >
         <FormLabel htmlFor="dice-sound-toggle" mb="0">
-          <LabelText>Dice Sound</LabelText>
+          <LabelText>{t("Dice Sound")}</LabelText>
         </FormLabel>
         <Switch
           id="dice-sound-toggle"

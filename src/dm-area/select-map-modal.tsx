@@ -18,6 +18,7 @@ import { selectMapModal_MapList_MapsFragment$key } from "./__generated__/selectM
 import { useInvokeOnScrollEnd } from "../hooks/use-invoke-on-scroll-end";
 import { selectMapModal_ActiveMap_MapFragment$key } from "./__generated__/selectMapModal_ActiveMap_MapFragment.graphql";
 import { selectMapModal_ActiveMapQuery } from "./__generated__/selectMapModal_ActiveMapQuery.graphql";
+import { useI18n } from "../i18n";
 
 type CreateNewMapButtonProps = {
   children: React.ReactChild;
@@ -159,6 +160,7 @@ const MapList = (props: {
   maps: selectMapModal_MapList_MapsFragment$key;
   reportMapsConnectionId: (mapsConnectionId: string) => void;
 }): React.ReactElement => {
+  const { t } = useI18n();
   const { data, isLoading, hasNext, loadNext } = usePagination(
     SelectMapModal_MapList_MapsFragment,
     props.maps
@@ -184,7 +186,7 @@ const MapList = (props: {
             }}
           >
             {item.node.title}{" "}
-            {item.node.id === props.liveMapId ? "(live)" : null}
+            {item.node.id === props.liveMapId ? t("(live)") : null}
           </ScrollableList.ListItemButton>
         </ScrollableList.ListItem>
       ))}
@@ -205,6 +207,7 @@ const ActiveMap = (props: {
   setModalState: React.Dispatch<React.SetStateAction<ModalStates | null>>;
   setLoadedMapId: (loadedMapId: string) => void;
 }): React.ReactElement => {
+  const { t } = useI18n();
   const activeMap = useFragment(
     SelectMapModal_ActiveMap_MapFragment,
     props.activeMap
@@ -274,7 +277,7 @@ const ActiveMap = (props: {
             }}
           >
             <Icon.Trash boxSize="20px" />
-            <span>Delete</span>
+            <span>{t("Delete")}</span>
           </Button.Tertiary>
         </div>
         <div style={{ marginLeft: "auto" }}>
@@ -285,7 +288,7 @@ const ActiveMap = (props: {
             }}
           >
             <Icon.Check boxSize="20px" />
-            <span>Load Map</span>
+            <span>{t("Load Map")}</span>
           </Button.Primary>
         </div>
       </div>
@@ -308,6 +311,7 @@ export const SelectMapModal = ({
   loadedMapId,
   canClose,
 }: SelectMapModalProps): React.ReactElement => {
+  const { t } = useI18n();
   const [activeMapId, setActiveMapId] = React.useState(loadedMapId);
   const [modalState, setModalState] = React.useState<ModalStates | null>(null);
   const [filter, setFilterValue] = React.useState("");
@@ -373,7 +377,7 @@ export const SelectMapModal = ({
         <Modal.Dialog>
           <Modal.Header>
             <Modal.Heading2>
-              <Icon.Map boxSize="28px" /> Map Library
+              <Icon.Map boxSize="28px" /> {t("Map Library")}
             </Modal.Heading2>
             <div style={{ flex: 1, textAlign: "right" }}>
               {canClose ? (
@@ -382,7 +386,7 @@ export const SelectMapModal = ({
                   style={{ marginLeft: 8 }}
                   onClick={closeModal}
                 >
-                  Close
+                  {t("Close")}
                 </Button.Tertiary>
               ) : null}
             </div>
@@ -399,7 +403,7 @@ export const SelectMapModal = ({
               >
                 <Input
                   tabIndex={1}
-                  placeholder="Filter"
+                  placeholder={t("Filter")}
                   value={filter}
                   onChange={onChangeFilter}
                   onKeyDown={(ev) => {
@@ -432,7 +436,8 @@ export const SelectMapModal = ({
                   }}
                 >
                   <>
-                    <Icon.Plus boxSize="20px" /> <span>Create New Map</span>
+                    <Icon.Plus boxSize="20px" />{" "}
+                    <span>{t("Create New Map")}</span>
                   </>
                 </CreateNewMapButton>
               </Modal.Footer>
@@ -591,6 +596,7 @@ const CreateNewMapModal = ({
   file: File;
   createMap: (title: string) => void;
 }): React.ReactElement => {
+  const { t } = useI18n();
   const [inputValue, setInputValue] = React.useState(() =>
     extractDefaultTitleFromFileName(file.name)
   );
@@ -608,12 +614,12 @@ const CreateNewMapModal = ({
     <Modal onClickOutside={closeModal} onPressEscape={closeModal}>
       <Modal.Dialog size={ModalDialogSize.SMALL}>
         <Modal.Header>
-          <Modal.Heading3>Create new Map</Modal.Heading3>
+          <Modal.Heading3>{t("Create new Map")}</Modal.Heading3>
         </Modal.Header>
         <Modal.Body>
           <InputGroup
             autoFocus
-            placeholder="Map title"
+            placeholder={t("Map title")}
             value={inputValue}
             onChange={onChangeInputValue}
             error={error}
@@ -624,7 +630,7 @@ const CreateNewMapModal = ({
             <Modal.ActionGroup>
               <div>
                 <Button.Tertiary onClick={closeModal} type="button">
-                  Abort
+                  {t("Abort")}
                 </Button.Tertiary>
               </div>
               <div>
@@ -632,14 +638,14 @@ const CreateNewMapModal = ({
                   type="submit"
                   onClick={() => {
                     if (inputValue.trim().length === 0) {
-                      setError("Please enter a map name.");
+                      setError(t("Please enter a map name."));
                       return;
                     }
                     createMap(inputValue);
                     closeModal();
                   }}
                 >
-                  Create Map
+                  {t("Create Map")}
                 </Button.Primary>
               </div>
             </Modal.ActionGroup>
@@ -654,6 +660,7 @@ const ChangeMapTitleModal: React.FC<{
   closeModal: () => void;
   updateMapTitle: (newTitle: string) => void;
 }> = ({ closeModal, updateMapTitle: updateMap }): React.ReactElement => {
+  const { t } = useI18n();
   const [inputValue, setInputValue] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
   const onChangeInputValue = React.useCallback(
@@ -664,24 +671,24 @@ const ChangeMapTitleModal: React.FC<{
   );
   const submit = React.useCallback(() => {
     if (inputValue.trim().length === 0) {
-      setError("Please enter a map name.");
+      setError(t("Please enter a map name."));
       return;
     }
     updateMap(inputValue);
     closeModal();
-  }, [inputValue, closeModal, updateMap, setError]);
+  }, [inputValue, closeModal, updateMap, setError, t]);
 
   return (
     <Modal onClickOutside={closeModal} onPressEscape={closeModal}>
       <Modal.Dialog size={ModalDialogSize.SMALL} onSubmit={submit}>
         <Modal.Header>
-          <Modal.Heading3>Change Title</Modal.Heading3>
+          <Modal.Heading3>{t("Change Title")}</Modal.Heading3>
         </Modal.Header>
 
         <Modal.Body>
           <InputGroup
             autoFocus
-            placeholder="New Map title"
+            placeholder={t("New Map title")}
             value={inputValue}
             onChange={onChangeInputValue}
             error={error}
@@ -692,11 +699,13 @@ const ChangeMapTitleModal: React.FC<{
             <Modal.ActionGroup>
               <div>
                 <Button.Tertiary type="button" onClick={closeModal}>
-                  Abort
+                  {t("Abort")}
                 </Button.Tertiary>
               </div>
               <div>
-                <Button.Primary type="submit">Change Map Title</Button.Primary>
+                <Button.Primary type="submit">
+                  {t("Change Map Title")}
+                </Button.Primary>
               </div>
             </Modal.ActionGroup>
           </Modal.Actions>
@@ -710,19 +719,20 @@ const DeleteMapModal: React.FC<{
   closeModal: () => void;
   deleteMap: () => void;
 }> = ({ closeModal, deleteMap }): React.ReactElement => {
+  const { t } = useI18n();
   return (
     <Modal onClickOutside={closeModal} onPressEscape={closeModal}>
       <Modal.Dialog size={ModalDialogSize.SMALL}>
         <Modal.Header>
-          <Modal.Heading3>Delete Map</Modal.Heading3>
+          <Modal.Heading3>{t("Delete Map")}</Modal.Heading3>
         </Modal.Header>
-        <Modal.Body>Do you really want to delete this map?</Modal.Body>
+        <Modal.Body>{t("Do you really want to delete this map?")}</Modal.Body>
         <Modal.Footer>
           <Modal.Actions>
             <Modal.ActionGroup>
               <div>
                 <Button.Tertiary type="submit" onClick={closeModal}>
-                  Abort
+                  {t("Abort")}
                 </Button.Tertiary>
               </div>
               <div>
@@ -732,7 +742,7 @@ const DeleteMapModal: React.FC<{
                     deleteMap();
                   }}
                 >
-                  Delete
+                  {t("Delete")}
                 </Button.Primary>
               </div>
             </Modal.ActionGroup>

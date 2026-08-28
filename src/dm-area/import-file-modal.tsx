@@ -14,6 +14,7 @@ import { AnimatedDotDotDot } from "../animated-dot-dot-dot";
 import { generateSHA256FileHash } from "../crypto";
 import { importFileModal_MapImageRequestUploadMutation } from "./__generated__/importFileModal_MapImageRequestUploadMutation.graphql";
 import { importFileModal_MapCreateMutation } from "./__generated__/importFileModal_MapCreateMutation.graphql";
+import { useI18n } from "../i18n";
 
 const OrSeperator = styled.span`
   padding-left: 18px;
@@ -82,6 +83,7 @@ const ImageImportModal: React.FC<{
   file: File;
   close: () => void;
 }> = ({ file, close }) => {
+  const { t } = useI18n();
   const [objectUrl, setObjectUrl] = React.useState<string | null>(null);
   const accessToken = useAccessToken();
 
@@ -181,7 +183,7 @@ const ImageImportModal: React.FC<{
     <Modal onPressEscape={close} onClickOutside={close}>
       <Modal.Dialog>
         <Modal.Header>
-          <h3>Import Image</h3>
+          <h3>{t("Import Image")}</h3>
         </Modal.Header>
         <Modal.Body>
           {objectUrl ? <PreviewImage src={objectUrl} /> : null}
@@ -191,7 +193,7 @@ const ImageImportModal: React.FC<{
           <Modal.Actions>
             <Modal.ActionGroup>
               <Button.Tertiary tabIndex={1} onClick={close}>
-                Close
+                {t("Close")}
               </Button.Tertiary>
             </Modal.ActionGroup>
             <Modal.ActionGroup>
@@ -200,16 +202,16 @@ const ImageImportModal: React.FC<{
                   disabled={areButtonsDisabled}
                   onClick={onClickImportMediaLibraryItem}
                 >
-                  Import into Media Library
+                  {t("Import into Media Library")}
                 </Button.Primary>
               </div>
-              <OrSeperator>or</OrSeperator>
+              <OrSeperator>{t("or")}</OrSeperator>
               <div>
                 <Button.Primary
                   disabled={areButtonsDisabled}
                   onClick={onClickCreateMap}
                 >
-                  Create Map
+                  {t("Create Map")}
                 </Button.Primary>
               </div>
             </Modal.ActionGroup>
@@ -237,6 +239,7 @@ const NoteImportLogFilter = styled.div`
 const NoteImportLogRenderer = (props: {
   logs: ImportFileLogRecord[];
 }): React.ReactElement => {
+  const { t } = useI18n();
   const virtuosoRef = React.useRef<VirtuosoHandle | null>(null);
 
   const [filter, setFilter] = React.useState(
@@ -272,16 +275,16 @@ const NoteImportLogRenderer = (props: {
       />
       <NoteImportLogFilter>
         <label>
-          <strong>Filter </strong>
+          <strong>{t("Filter ")}</strong>
           <select
             value={filter}
             onChange={(ev) => {
               setFilter(ev.target.value as any);
             }}
           >
-            <option value="none">All</option>
-            <option value="success">Successful</option>
-            <option value="failure">Failed</option>
+            <option value="none">{t("All")}</option>
+            <option value="success">{t("Successful")}</option>
+            <option value="failure">{t("Failed")}</option>
           </select>
         </label>
       </NoteImportLogFilter>
@@ -292,6 +295,7 @@ const NoteImportLogRenderer = (props: {
 const NoteImportModal: React.FC<{ file: File; close: () => void }> = (
   props
 ) => {
+  const { t } = useI18n();
   const [state, setState] = React.useState<
     "notStarted" | "inProgress" | "finished"
   >("notStarted");
@@ -374,17 +378,21 @@ const NoteImportModal: React.FC<{ file: File; close: () => void }> = (
     <Modal onPressEscape={onClose} onClickOutside={onClose}>
       <Modal.Dialog>
         <Modal.Header>
-          <h3>Import Notes</h3>
+          <h3>{t("Import Notes")}</h3>
         </Modal.Header>
         <Modal.Body>
           <div style={{ textAlign: "center" }}>
             {state === "notStarted" ? (
-              <h2>Preparing import</h2>
+              <h2>{t("Preparing import")}</h2>
             ) : (
               <h2>
-                Successfully imported {importedFilesCount} note
-                {importedFilesCount === 1 ? "" : "s"}{" "}
-                {failedFilesCount > 0 ? ` (${failedFilesCount} failed)` : null}
+                {t("Successfully imported {count} note{plural}", {
+                  count: importedFilesCount,
+                  plural: importedFilesCount === 1 ? "" : "s",
+                })}{" "}
+                {failedFilesCount > 0
+                  ? t("({count} failed)", { count: failedFilesCount })
+                  : null}
               </h2>
             )}
             {showLogs ? (
@@ -393,7 +401,9 @@ const NoteImportModal: React.FC<{ file: File; close: () => void }> = (
               </React.Fragment>
             ) : (
               <React.Fragment>
-                <FileTitle>File: {props.file.name}</FileTitle>
+                <FileTitle>
+                  {t("File:")} {props.file.name}
+                </FileTitle>
                 <div
                   style={{
                     height: 200,
@@ -417,14 +427,14 @@ const NoteImportModal: React.FC<{ file: File; close: () => void }> = (
                     {state === "notStarted" ? null : importedFilesCount === 0 &&
                       state === "inProgress" ? (
                       <strong>
-                        Uploading
+                        {t("Uploading")}
                         <AnimatedDotDotDot />
                       </strong>
                     ) : state === "finished" ? (
-                      <strong>Done.</strong>
+                      <strong>{t("Done.")}</strong>
                     ) : (
                       <strong>
-                        Importing
+                        {t("Importing")}
                         <AnimatedDotDotDot />
                       </strong>
                     )}
@@ -440,13 +450,13 @@ const NoteImportModal: React.FC<{ file: File; close: () => void }> = (
               <>
                 <Modal.ActionGroup>
                   <Button.Tertiary tabIndex={1} onClick={onClose}>
-                    Close
+                    {t("Close")}
                   </Button.Tertiary>
                 </Modal.ActionGroup>
                 <Modal.ActionGroup>
                   <div>
                     <Button.Primary onClick={onClickImport}>
-                      Start Import
+                      {t("Start Import")}
                     </Button.Primary>
                   </div>
                 </Modal.ActionGroup>
@@ -456,7 +466,9 @@ const NoteImportModal: React.FC<{ file: File; close: () => void }> = (
                 <Modal.ActionGroup>
                   <div>
                     <Button.Primary disabled>
-                      {importedFilesCount === 0 ? "Uploading" : "Importing"}
+                      {importedFilesCount === 0
+                        ? t("Uploading")
+                        : t("Importing")}
                       <AnimatedDotDotDot />
                     </Button.Primary>
                   </div>
@@ -468,16 +480,18 @@ const NoteImportModal: React.FC<{ file: File; close: () => void }> = (
                   <div>
                     {showLogs ? (
                       <Button.Primary onClick={() => setShowLogs(false)}>
-                        Hide logs
+                        {t("Hide logs")}
                       </Button.Primary>
                     ) : (
                       <Button.Primary onClick={() => setShowLogs(true)}>
-                        Show logs
+                        {t("Show logs")}
                       </Button.Primary>
                     )}
                   </div>
                   <div>
-                    <Button.Primary onClick={onClose}>Close</Button.Primary>
+                    <Button.Primary onClick={onClose}>
+                      {t("Close")}
+                    </Button.Primary>
                   </div>
                 </Modal.ActionGroup>
               </>
@@ -493,6 +507,7 @@ export const ImportFileModal: React.FC<{
   file: File;
   close: () => void;
 }> = ({ file, close }) => {
+  const { t } = useI18n();
   if (validImageFileTypes.includes(file.type)) {
     return <ImageImportModal file={file} close={close} />;
   } else if (validNoteImportFileTypes) {
@@ -502,18 +517,19 @@ export const ImportFileModal: React.FC<{
       <Modal onPressEscape={close} onClickOutside={close}>
         <Modal.Dialog>
           <Modal.Header>
-            <h3>Invalid File</h3>
+            <h3>{t("Invalid File")}</h3>
           </Modal.Header>
           <Modal.Body>
-            Only images, zip files and markdown files can imported into Dungeon
-            Revealer.
+            {t(
+              "Only images, zip files and markdown files can imported into Dungeon Revealer."
+            )}
           </Modal.Body>
           <Modal.Footer>
             <Modal.Actions>
               <Modal.ActionGroup>
                 <div>
                   <Button.Primary tabIndex={1} onClick={close}>
-                    Ok
+                    {t("Ok")}
                   </Button.Primary>
                 </div>
               </Modal.ActionGroup>

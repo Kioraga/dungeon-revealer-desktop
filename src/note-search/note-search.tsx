@@ -8,6 +8,7 @@ import * as Icon from "../feather-icons";
 import { darken } from "polished";
 import { useOnClickOutside } from "../hooks/use-on-click-outside";
 import { useCurrent } from "../hooks/use-current";
+import { useI18n } from "../i18n";
 
 const Container = styled.div`
   position: absolute;
@@ -125,6 +126,7 @@ const ResultContent = styled.div``;
 export const NoteSearch = (props: {
   close: () => void;
 }): React.ReactElement => {
+  const { t } = useI18n();
   const [query, setQuery] = React.useState("");
   const ref = React.useRef<null | HTMLDivElement>(null);
   useOnClickOutside<HTMLDivElement>(ref, props.close);
@@ -155,7 +157,7 @@ export const NoteSearch = (props: {
           autoFocus
           onChange={(ev) => setQuery(ev.target.value)}
           value={query}
-          placeholder="What are you looking for?"
+          placeholder={t("What are you looking for?")}
         />
       </InputLabel>
       <ResultContainer>

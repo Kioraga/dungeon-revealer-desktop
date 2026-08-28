@@ -28,6 +28,7 @@ import { isFileDrag } from "../hooks/use-drop-zone";
 import { useNoteWindowActions } from "./token-info-aside";
 import { MapControlInterface } from "../map-view";
 import { useTokenImageUpload } from "./token-image-upload";
+import { useI18n } from "../i18n";
 import { dmAreaTokenAddManyMutation } from "./__generated__/dmAreaTokenAddManyMutation.graphql";
 import { dmArea_MapQuery } from "./__generated__/dmArea_MapQuery.graphql";
 
@@ -186,6 +187,7 @@ const Content = ({
   socket: Socket;
   password: string;
 }): React.ReactElement => {
+  const { t } = useI18n();
   const [loadedMapId, setLoadedMapId] = useLoadedMapId();
 
   const dmAreaResponse = useQuery<dmArea_MapQuery>(
@@ -410,7 +412,7 @@ const Content = ({
               />
             ) : null}
             <span style={{ position: "relative" }}>
-              {mode === "dm" ? "DM" : "Player"}
+              {mode === "dm" ? "GM" : t("Player")}
             </span>
           </ViewModeButton>
         ))}

@@ -9,6 +9,7 @@ import { buildApiUrl } from "../../public-url";
 import { sendRequest, ISendRequestTask } from "../../http-request";
 import { useGetIsMounted } from "../../hooks/use-get-is-mounted";
 import { useInvokeOnScrollEnd } from "../../hooks/use-invoke-on-scroll-end";
+import { useI18n } from "../../i18n";
 
 const Content = styled.div`
   width: 90vw;
@@ -122,6 +123,7 @@ export const SelectLibraryImageModal: React.FC<{
   close: () => void;
   onSelect: (mediaId: string) => void;
 }> = ({ close, onSelect }) => {
+  const { t } = useI18n();
   const [state, dispatch] = React.useReducer(stateReducer, initialState);
   const getIsMounted = useGetIsMounted();
 
@@ -190,7 +192,7 @@ export const SelectLibraryImageModal: React.FC<{
       <Content onClick={(ev) => ev.stopPropagation()} tabIndex={1}>
         <Modal.Header>
           <Modal.Heading2>
-            <Icon.Image boxSize="28px" /> Media Library
+            <Icon.Image boxSize="28px" /> {t("Media Library")}
           </Modal.Heading2>
         </Modal.Header>
         <Modal.Body
@@ -221,7 +223,7 @@ export const SelectLibraryImageModal: React.FC<{
           <Modal.Actions>
             <Modal.ActionGroup>
               <div>
-                <Button.Tertiary onClick={close}>Abort</Button.Tertiary>
+                <Button.Tertiary onClick={close}>{t("Abort")}</Button.Tertiary>
               </div>
               <div>
                 <Button.Primary
@@ -229,7 +231,7 @@ export const SelectLibraryImageModal: React.FC<{
                   tabIndex={1}
                   onClick={() => selectedFile && onSelect(selectedFile.id)}
                 >
-                  Select Image
+                  {t("Select Image")}
                 </Button.Primary>
               </div>
             </Modal.ActionGroup>

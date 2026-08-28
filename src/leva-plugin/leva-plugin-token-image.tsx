@@ -33,10 +33,12 @@ import { levaPluginTokenImage_TokenImagesFragment$key } from "./__generated__/le
 import { levaPluginTokenImage_TokenImagesQuery } from "./__generated__/levaPluginTokenImage_TokenImagesQuery.graphql";
 import { useTokenImageUpload } from "../dm-area/token-image-upload";
 import { useCurrent } from "../hooks/use-current";
+import { useI18n } from "../i18n";
 
 const { Row, Label } = LevaComponents;
 
 const TokenImageReference = () => {
+  const { t } = useI18n();
   const { displayValue, setValue } = useInputContext<any>();
   const [node, selectFile] = useTokenImageUpload();
 
@@ -44,7 +46,7 @@ const TokenImageReference = () => {
     <>
       <Portal>{node}</Portal>
       <Row input>
-        <Label>Image</Label>
+        <Label>{t("Image")}</Label>
         <HStack alignItems="center" spacing={1}>
           {displayValue ? (
             <>
@@ -55,7 +57,7 @@ const TokenImageReference = () => {
                   closeOnBlur={node === null}
                 >
                   <PopoverTrigger>
-                    <Button size="xs">Change</Button>
+                    <Button size="xs">{t("Change")}</Button>
                   </PopoverTrigger>
                   <Portal>
                     <PopoverContent width="400px">
@@ -84,7 +86,7 @@ const TokenImageReference = () => {
             <Box>
               <Popover isLazy placement="top-start" closeOnBlur={node === null}>
                 <PopoverTrigger>
-                  <Button size="xs">Add</Button>
+                  <Button size="xs">{t("Add")}</Button>
                 </PopoverTrigger>
                 <Portal>
                   <PopoverContent width="400px">
@@ -147,12 +149,13 @@ const TokenImageList = (props: {
   titleFilter: string;
   setTitleFilter: (title: string) => void;
 }) => {
+  const { t } = useI18n();
   const pagination = usePagination(TokenImagesFragment, props.data);
   const inputRef = React.useRef<HTMLInputElement | null>(null);
   const elementRef = React.useRef<HTMLDivElement>(null);
   return (
     <>
-      <PopoverHeader>Select Token Image</PopoverHeader>
+      <PopoverHeader>{t("Select Token Image")}</PopoverHeader>
       <PopoverCloseButton />
       <PopoverBody
         height="200px"
@@ -202,7 +205,7 @@ const TokenImageList = (props: {
               />
               <Input
                 variant="flushed"
-                placeholder="Filter"
+                placeholder={t("Filter")}
                 value={props.titleFilter}
                 onChange={(ev) => {
                   props.setTitleFilter(ev.target.value);

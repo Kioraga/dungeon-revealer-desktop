@@ -19,6 +19,7 @@ import type { sharedTokenMenuReferenceNoteQuery } from "./__generated__/sharedTo
 
 import { State, StoreType } from "leva/dist/declarations/src/types";
 import { levaPluginNotePreview } from "./leva-plugin/leva-plugin-note-preview";
+import { useI18n } from "./i18n";
 
 const firstMapValue = <TItemValue extends any>(
   map: Map<any, TItemValue>
@@ -195,6 +196,7 @@ const NoteAsidePreview = (props: { noteId: string }) => {
 };
 
 const SingleTokenPanels = (props: { store: StoreType }) => {
+  const { t } = useI18n();
   const referenceId = props.store.useStore(referenceIdSelector);
 
   const [show, setShow] = useTokenMenuState();
@@ -209,7 +211,7 @@ const SingleTokenPanels = (props: { store: StoreType }) => {
         titleBar={{
           filter: false,
           drag: false,
-          title: "Token Properties",
+          title: t("Token Properties"),
         }}
         collapsed={{
           collapsed: !show,
@@ -229,6 +231,7 @@ const SharedTokenMenuUpdateManyMapTokenMutation = graphql`
 `;
 
 const MultiTokenPanel = (props: { currentMapId: string }) => {
+  const { t } = useI18n();
   const store = useCreateStore();
   const [selectedItems] = useSelectedItems();
 
@@ -257,7 +260,7 @@ const MultiTokenPanel = (props: { currentMapId: string }) => {
       return {
         color: {
           type: LevaInputs.COLOR,
-          label: "Color",
+          label: t("Color"),
           value: firstItem.get("color"),
           onChange: (color: string, _, { initial, fromPanel }) => {
             if (initial || !fromPanel) {
@@ -283,7 +286,7 @@ const MultiTokenPanel = (props: { currentMapId: string }) => {
         },
         isVisibleForPlayers: {
           type: LevaInputs.BOOLEAN,
-          label: "Visible to players",
+          label: t("Visible to players"),
           value: firstItem.get("isVisibleForPlayers"),
           onChange: (
             isVisibleForPlayers: boolean,
@@ -311,7 +314,7 @@ const MultiTokenPanel = (props: { currentMapId: string }) => {
         },
         isMovableByPlayers: {
           type: LevaInputs.BOOLEAN,
-          label: "Movable by players",
+          label: t("Movable by players"),
           value: firstItem.get("isMovableByPlayers"),
           onChange: (
             isMovableByPlayers: boolean,
@@ -366,7 +369,8 @@ const MultiTokenPanel = (props: { currentMapId: string }) => {
         }),
       };
     },
-    { store }
+    { store },
+    [t]
   );
 
   // Workaround as dependency array does not seem to work atm :(

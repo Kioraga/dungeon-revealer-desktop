@@ -9,6 +9,7 @@ import debounce from "lodash/debounce";
 import { useStaticRef } from "../hooks/use-static-ref";
 import { DraggableWindow, SetWidthHandler } from "../draggable-window";
 import { usePersistedState } from "../hooks/use-persisted-state";
+import { useI18n } from "../i18n";
 
 const WindowContent = styled.div`
   overflow-y: scroll;
@@ -139,6 +140,7 @@ const usePersitedDiceNotesValue = () =>
   });
 
 export const DiceRollNotes: React.FC<{ close: () => void }> = ({ close }) => {
+  const { t } = useI18n();
   const [mode, setMode] = React.useState<"read" | "write">("read");
   const editorRef =
     React.useRef<monacoEditor.editor.IStandaloneCodeEditor | null>(null);
@@ -160,14 +162,14 @@ export const DiceRollNotes: React.FC<{ close: () => void }> = ({ close }) => {
       setWidthRef={setWidthRef}
       headerContent={
         <>
-          <div style={{ fontWeight: "bold" }}>Dice Roll Notes</div>
+          <div style={{ fontWeight: "bold" }}>{t("Dice Roll Notes")}</div>
         </>
       }
       options={[
         {
           onClick: () =>
             setMode((mode) => (mode === "read" ? "write" : "read")),
-          title: mode === "read" ? "Edit" : "Save",
+          title: mode === "read" ? t("Edit") : t("Save"),
           icon:
             mode === "read" ? (
               <Icon.Edit boxSize="16px" />

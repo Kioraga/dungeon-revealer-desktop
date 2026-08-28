@@ -24,6 +24,7 @@ import { tokenImageCropper_TokenLibraryImagesQuery } from "./__generated__/token
 import { useStaticRef } from "../hooks/use-static-ref";
 import { useWindowDimensions } from "../hooks/use-window-dimensions";
 import type CropperType from "react-easy-crop";
+import { useI18n } from "../i18n";
 
 const TokenLibraryImagesQuery = graphql`
   query tokenImageCropper_TokenLibraryImagesQuery($sourceImageSha256: String!) {
@@ -57,6 +58,7 @@ export const TokenImageCropper = (props: {
   ) => unknown;
   onClose: () => void;
 }): React.ReactElement => {
+  const { t } = useI18n();
   const [crop, setCrop] = React.useState({ x: 0, y: 0 });
   const [zoom, setZoom] = React.useState(1);
   const [rotation, setRotation] = React.useState(0);
@@ -154,7 +156,9 @@ export const TokenImageCropper = (props: {
               width="100%"
               maxWidth={{ base: undefined, xl: "300px" }}
             >
-              <Heading size="xs">Token Images from this Source</Heading>
+              <Heading size="xs">
+                {t("Token Images from this Source")}
+              </Heading>
               <Stack direction={{ base: "row", xl: "column" }}>
                 {data.data.tokenImages.edges.map((edge) => (
                   <Grid
@@ -195,7 +199,7 @@ export const TokenImageCropper = (props: {
                           });
                         }}
                       >
-                        Use this image.
+                        {t("Use this image.")}
                       </Button>
                     </GridItem>
                   </Grid>
@@ -257,11 +261,12 @@ export const TokenImageCropper = (props: {
             alignSelf="flex-end"
           >
             <Text fontSize="small">
-              Please select a rectangular part from the image that will be used
-              as the token image.
+              {t(
+                "Please select a rectangular part from the image that will be used as the token image."
+              )}
             </Text>
             <FormControl id="slider">
-              <FormLabel fontSize="small">Zoom</FormLabel>
+              <FormLabel fontSize="small">{t("Zoom")}</FormLabel>
               <Slider
                 aria-label="slider-zoom"
                 min={cropSize?.minZoom}
@@ -278,7 +283,7 @@ export const TokenImageCropper = (props: {
               </Slider>
             </FormControl>
             <FormControl id="rotation">
-              <FormLabel fontSize="small">Rotation</FormLabel>
+              <FormLabel fontSize="small">{t("Rotation")}</FormLabel>
               <Slider
                 aria-label="slider-rotation"
                 min={0}
@@ -295,7 +300,7 @@ export const TokenImageCropper = (props: {
               </Slider>
             </FormControl>
             <FormControl id="token-title">
-              <FormLabel fontSize="small">Title</FormLabel>
+              <FormLabel fontSize="small">{t("Title")}</FormLabel>
               <Input
                 value={title}
                 onChange={(ev) => setTitle(ev.target.value)}
@@ -309,7 +314,7 @@ export const TokenImageCropper = (props: {
               alignSelf="flex-end"
             >
               <Button onClick={props.onClose} variant="ghost">
-                Abort
+                {t("Abort")}
               </Button>
               <Button
                 colorScheme="teal"
@@ -326,9 +331,8 @@ export const TokenImageCropper = (props: {
                   props.onConfirm({ type: "File", file, title });
                 }}
               >
-                Confirm
-              </Button>
-            </Stack>
+                {t("Confirm")}
+              </Button>            </Stack>
           </Stack>
         </GridItem>
       </Grid>

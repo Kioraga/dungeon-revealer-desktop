@@ -31,6 +31,7 @@ import { IsDungeonMasterContext } from "./is-dungeon-master-context";
 import type { mapView_MapFragment$key } from "./__generated__/mapView_MapFragment.graphql";
 import { PlayerViewportRect } from "./player-viewport-rect";
 import type { PlayerView } from "./player-viewport-rect";
+import { useI18n, I18nContext } from "./i18n";
 
 const ToolbarContainer = styled(animated.div)`
   position: absolute;
@@ -81,6 +82,7 @@ export const PlayerMapView = ({
   socket: ReturnType<typeof useSocket>;
   isMapOnly: boolean;
 }) => {
+  const { t } = useI18n();
   const [mapPing] = useMutation<playerArea_MapPingMutation>(MapPingMutation);
 
   const showSplashScreen = map === null;
@@ -361,6 +363,7 @@ export const PlayerMapView = ({
                   NoteWindowActionsContext,
                   ReactRelayContext,
                   UpdateTokenContext,
+                  I18nContext,
                 ]}
                 fogOpacity={1}
               />
@@ -404,7 +407,7 @@ export const PlayerMapView = ({
                           }}
                         >
                           <Icon.Compass boxSize="20px" />
-                          <Icon.Label>Center Map</Icon.Label>
+                          <Icon.Label>{t("Center Map")}</Icon.Label>
                         </Toolbar.Button>
                       </Toolbar.Item>
                       <Toolbar.Item isActive>
@@ -421,7 +424,7 @@ export const PlayerMapView = ({
                           }}
                         >
                           <Icon.ZoomIn boxSize="20px" />
-                          <Icon.Label>Zoom In</Icon.Label>
+                          <Icon.Label>{t("Zoom In")}</Icon.Label>
                         </Toolbar.LongPressButton>
                       </Toolbar.Item>
                       <Toolbar.Item isActive>
@@ -438,7 +441,7 @@ export const PlayerMapView = ({
                           }}
                         >
                           <Icon.ZoomOut boxSize="20px" />
-                          <Icon.Label>Zoom Out</Icon.Label>
+                          <Icon.Label>{t("Zoom Out")}</Icon.Label>
                         </Toolbar.LongPressButton>
                       </Toolbar.Item>
                       <Toolbar.Item isActive>
@@ -458,7 +461,7 @@ export const PlayerMapView = ({
                           }}
                         >
                           <Icon.RotateCW boxSize="20px" />
-                          <Icon.Label>Rotate</Icon.Label>
+                          <Icon.Label>{t("Rotate")}</Icon.Label>
                         </Toolbar.Button>
                       </Toolbar.Item>
                     </Toolbar.Group>
@@ -470,7 +473,7 @@ export const PlayerMapView = ({
         )
       ) : (
         <AbsoluteFullscreenContainer>
-          <SplashScreen text="Ready." />
+          <SplashScreen text={t("Ready.")} />
         </AbsoluteFullscreenContainer>
       )}
     </>
@@ -553,6 +556,7 @@ export const PlayerArea: React.FC<{
   password: string | null;
   isMapOnly: boolean;
 }> = (props) => {
+  const { t } = useI18n();
   const [pcPassword, setPcPassword] = usePcPassword();
   const initialPcPassword = React.useRef(pcPassword);
   let usedPassword = pcPassword;
@@ -595,7 +599,7 @@ export const PlayerArea: React.FC<{
   );
 
   if (mode === "LOADING") {
-    return <SplashScreen text="Loading..." />;
+    return <SplashScreen text={t("Loading...")} />;
   }
 
   if (mode === "AUTHENTICATE") {

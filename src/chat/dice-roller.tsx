@@ -4,6 +4,7 @@ import { Input, FormControl, HStack } from "@chakra-ui/react";
 import { useMessageAddMutation } from "./message-add-mutation";
 import * as Button from "../button";
 import * as Icon from "../feather-icons";
+import { useI18n } from "../i18n";
 
 // Dice-only log: no plain text messages, only dice rolls.
 const DICE = [4, 6, 8, 10, 12, 20];
@@ -26,6 +27,7 @@ const DieButton = styled.button`
 `;
 
 export const DiceRoller: React.FC<{}> = () => {
+  const { t } = useI18n();
   const [notation, setNotation] = React.useState("");
   const messageAdd = useMessageAddMutation();
 
@@ -75,7 +77,7 @@ export const DiceRoller: React.FC<{}> = () => {
           style={{ whiteSpace: "nowrap" }}
         >
           <Icon.Dice boxSize="16px" />
-          <span>Roll</span>
+          <span>{t("Roll")}</span>
         </Button.Primary>
       </HStack>
     </FormControl>

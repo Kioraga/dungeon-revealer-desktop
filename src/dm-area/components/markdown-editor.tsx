@@ -22,6 +22,7 @@ import { useWindowContext } from "../token-info-aside/token-info-aside";
 import { useCurrent } from "../../hooks/use-current";
 import { useShowSelectNoteModal } from "../select-note-modal";
 import { HtmlContainer } from "./html-container";
+import { useI18n } from "../../i18n";
 
 const insertImageIntoEditor = (
   monaco: Monaco,
@@ -540,6 +541,7 @@ const AsideSelectNote: React.FC<{
   noteId: string;
   onSelect: (id: string) => void;
 }> = (props) => {
+  const { t } = useI18n();
   const actions = useNoteWindowActions();
   const windowId = useWindowContext();
   const [mutate, state] = useMutation<markdownEditor_noteCreateMutation>(
@@ -605,20 +607,20 @@ const AsideSelectNote: React.FC<{
               });
             }}
           >
-            Create Note
+            {t("Create Note")}
           </Button.Primary>
         </>
       ) : dataProps?.asideNote ? (
         <>
           <div style={{ marginBottom: 8 }}>
-            <b>Title:</b> {dataProps.asideNote.title}
+            <b>{t("Title:")}</b> {dataProps.asideNote.title}
           </div>
           <div style={{ marginBottom: 8 }}>
             {dataProps.asideNote.contentPreview}
           </div>
           <div>
             <Button.Primary small style={{ marginRight: 8 }} onClick={linkNote}>
-              Change linked Note
+              {t("Change linked Note")}
             </Button.Primary>
             <Button.Primary
               small
@@ -626,7 +628,7 @@ const AsideSelectNote: React.FC<{
                 actions.showNoteInWindow(props.noteId, windowId);
               }}
             >
-              Open
+              {t("Open")}
             </Button.Primary>
           </div>
         </>
@@ -642,6 +644,7 @@ export const MarkdownEditor: React.FC<{
   sideBarRef: React.RefObject<HTMLElement>;
   editorOnResizeRef?: React.MutableRefObject<() => void>;
 }> = ({ value, onChange, sideBarRef, editorOnResizeRef }) => {
+  const { t } = useI18n();
   const monaco = useMonaco();
   const uploadTaskRef = React.useRef<ISendRequestTask | null>(null);
   const accessToken = useAccessToken();
@@ -737,7 +740,7 @@ export const MarkdownEditor: React.FC<{
     <Container>
       <TextToolBar>
         <ToolBarButton
-          title="Heading"
+          title={t("Heading")}
           onClick={() => {
             const editor = ref.current;
             const model = editor?.getModel();
@@ -773,7 +776,7 @@ export const MarkdownEditor: React.FC<{
           <Icon.Heading />
         </ToolBarButton>
         <ToolBarButton
-          title="Bold"
+          title={t("Bold")}
           onClick={() => {
             const editor = ref.current;
             if (editor) {
@@ -788,7 +791,7 @@ export const MarkdownEditor: React.FC<{
           <Icon.Bold boxSize="16px" />
         </ToolBarButton>
         <ToolBarButton
-          title="Italicize"
+          title={t("Italicize")}
           onClick={() => {
             const editor = ref.current;
             if (editor) {
@@ -803,7 +806,7 @@ export const MarkdownEditor: React.FC<{
           <Icon.Italic boxSize="16px" />
         </ToolBarButton>
         <ToolBarButton
-          title="Strikethrough"
+          title={t("Strikethrough")}
           onClick={() => {
             const editor = ref.current;
             if (editor) {
@@ -818,7 +821,7 @@ export const MarkdownEditor: React.FC<{
           <Icon.Strikethrough />
         </ToolBarButton>
         <ToolBarButton
-          title="Code"
+          title={t("Code")}
           onClick={() => {
             const editor = ref.current;
             const model = editor?.getModel();
@@ -866,7 +869,7 @@ export const MarkdownEditor: React.FC<{
         </ToolBarButton>
         <ToolBarButtonDropDown>
           <ToolBarButton
-            title="Insert List"
+            title={t("Insert List")}
             onClick={() => {
               if (monaco && ref.current)
                 toggleMarkdownList(monaco, ref.current, listKinds.unordered);
@@ -908,7 +911,7 @@ export const MarkdownEditor: React.FC<{
           </DropDownMenu>
         </ToolBarButtonDropDown>
         <ToolBarButton
-          title="Quote"
+          title={t("Quote")}
           onClick={() => {
             if (monaco && ref.current)
               toggleMarkdownList(monaco, ref.current, listKinds.quote);
@@ -917,7 +920,7 @@ export const MarkdownEditor: React.FC<{
           <Icon.Quote />
         </ToolBarButton>
         <ToolBarButtonDropDown>
-          <ToolBarButton title="Insert Image" onClick={onClickImageButton}>
+          <ToolBarButton title={t("Insert Image")} onClick={onClickImageButton}>
             <Icon.Image boxSize="16px" />
           </ToolBarButton>
           <DropDownMenu data-menu>
@@ -932,7 +935,7 @@ export const MarkdownEditor: React.FC<{
           </DropDownMenu>
         </ToolBarButtonDropDown>
         <ToolBarButton
-          title="Insert Link"
+          title={t("Insert Link")}
           onClick={() => {
             const editor = ref.current;
             if (editor) {
@@ -947,7 +950,7 @@ export const MarkdownEditor: React.FC<{
           <Icon.Link boxSize="16px" />
         </ToolBarButton>
         <ToolBarButton
-          title="Dice macro"
+          title={t("Dice macro")}
           onClick={() => {
             const editor = ref.current;
             const model = editor?.getModel();
@@ -974,7 +977,7 @@ export const MarkdownEditor: React.FC<{
           <Icon.Dice boxSize="16px" />
         </ToolBarButton>
         <ToolBarButton
-          title="Insert Table"
+          title={t("Insert Table")}
           onClick={() => {
             const editor = ref.current;
             const model = editor?.getModel();
@@ -997,7 +1000,7 @@ export const MarkdownEditor: React.FC<{
         </ToolBarButton>
         <ToolBarButton
           style={{ marginLeft: "auto" }}
-          title="Toggle Split Mode"
+          title={t("Toggle Split Mode")}
           onClick={() => {
             setIsSplitView((isSplitView) => !isSplitView);
           }}

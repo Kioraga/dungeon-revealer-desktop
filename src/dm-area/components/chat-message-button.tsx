@@ -10,6 +10,7 @@ import {
   PopoverTrigger,
 } from "@chakra-ui/react";
 import { button, useControls, useCreateStore, LevaInputs } from "leva";
+import { useI18n } from "../../i18n";
 import * as t from "io-ts";
 import { flow, identity } from "fp-ts/function";
 import * as E from "fp-ts/Either";
@@ -188,6 +189,7 @@ const ComplexChatMessageButton = (props: {
   children?: React.ReactNode;
   variables: VariablesMap;
 }) => {
+  const { t } = useI18n();
   const messageAdd = useMessageAddMutation();
 
   const store = useCreateStore();
@@ -201,7 +203,7 @@ const ComplexChatMessageButton = (props: {
           toLevaInputSetting(value),
         ]),
         [
-          "Roll with Modification",
+          t("Roll with Modification"),
           button(() => {
             messageAdd({
               rawContent: props.message,
@@ -213,7 +215,8 @@ const ComplexChatMessageButton = (props: {
           }),
         ] as any,
       ]),
-    { store }
+    { store },
+    [t]
   );
 
   React.useEffect(() => {
@@ -246,7 +249,7 @@ const ComplexChatMessageButton = (props: {
       {props.controls.size > 0 ? (
         <Popover placement="right">
           <PopoverTrigger>
-            <IconButton aria-label="Apply options" icon={<Icon.Right />} />
+            <IconButton aria-label={t("Apply options")} icon={<Icon.Right />} />
           </PopoverTrigger>
           <Portal>
             <PopoverContent maxWidth={200}>

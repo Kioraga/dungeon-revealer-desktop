@@ -8,6 +8,7 @@ import styled from "@emotion/styled/macro";
 import { buildApiUrl } from "./public-url";
 import { useToast } from "@chakra-ui/react";
 import { useViewerRole } from "./authenticated-app-shell";
+import { useI18n } from "./i18n";
 
 const SplashShareImage_SplashShareImageQuery = graphql`
   query splashShareImageSharedSplashImageQuery @live {
@@ -24,6 +25,7 @@ const LightBoxImage = styled.img`
 `;
 
 export const SplashShareImage = (): React.ReactElement | null => {
+  const { t } = useI18n();
   const data = useQuery<splashShareImageSharedSplashImageQuery>(
     SplashShareImage_SplashShareImageQuery
   );
@@ -38,7 +40,7 @@ export const SplashShareImage = (): React.ReactElement | null => {
           if (role === "Player") {
             showToast({
               status: "info",
-              title: "Only a DM can dismiss this view.",
+              title: t("Only a DM can dismiss this view."),
               isClosable: true,
               duration: 3000,
               position: "top",

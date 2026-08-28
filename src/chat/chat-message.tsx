@@ -31,6 +31,7 @@ import { chatMessageComponents } from "../user-content-components";
 import type { chatMessage_message } from "./__generated__/chatMessage_message.graphql";
 import { chatMessage_SharedResourceChatMessageFragment$key } from "./__generated__/chatMessage_SharedResourceChatMessageFragment.graphql";
 import { DiceRoll, FormattedDiceRoll } from "./formatted-dice-roll";
+import { useI18n } from "../i18n";
 
 const Container = styled.div`
   padding-bottom: 4px;
@@ -135,6 +136,7 @@ const UserMessageRenderer = ({
   diceRolls: DiceRollResultArray;
   referencedDiceRolls: DiceRollResultArray;
 }) => {
+  const { t } = useI18n();
   const markdown = React.useMemo(
     () =>
       content.replace(
@@ -154,7 +156,7 @@ const UserMessageRenderer = ({
             <Popover placement="left">
               <PopoverTrigger>
                 <IconButton
-                  aria-label="Show Info"
+                  aria-label={t("Show Info")}
                   icon={<Icon.Info />}
                   size="sm"
                   variant="unstyled"
@@ -162,14 +164,14 @@ const UserMessageRenderer = ({
               </PopoverTrigger>
               <Portal>
                 <PopoverContent>
-                  <PopoverHeader>Dice Rolls</PopoverHeader>
+                  <PopoverHeader>{t("Dice Rolls")}</PopoverHeader>
                   <PopoverCloseButton />
                   <PopoverBody>
                     <Table size="sm">
                       <Thead>
                         <Tr>
-                          <Th>ID</Th>
-                          <Th>Result</Th>
+                          <Th>{t("ID")}</Th>
+                          <Th>{t("Result")}</Th>
                         </Tr>
                       </Thead>
                       <Tbody>
@@ -250,6 +252,7 @@ const NotePreview: React.FC<{
   title: string;
   contentPreview: string;
 }> = ({ documentId, title, contentPreview }) => {
+  const { t } = useI18n();
   const noteWindowActions = useNoteWindowActions();
   return (
     <NoteCard>
@@ -262,7 +265,7 @@ const NotePreview: React.FC<{
             noteWindowActions.focusOrShowNoteInNewWindow(documentId)
           }
         >
-          Show
+          {t("Show")}
         </Button.Primary>
       </NoteFooter>
     </NoteCard>
@@ -272,12 +275,15 @@ const NotePreview: React.FC<{
 const SharedResourceRenderer: React.FC<{
   message: chatMessage_SharedResourceChatMessageFragment$key;
 }> = ({ message: messageKey }) => {
+  const { t } = useI18n();
   const message = useFragment(
     ChatMessage_SharedResourceChatMessageFragment,
     messageKey
   );
 
-  let resourceContent: React.ReactNode = <strong>CONTENT UNAVAILABLE</strong>;
+  let resourceContent: React.ReactNode = (
+    <strong>{t("CONTENT UNAVAILABLE")}</strong>
+  );
 
   if (message.resource) {
     switch (message.resource.__typename) {
@@ -297,7 +303,9 @@ const SharedResourceRenderer: React.FC<{
 
   return (
     <Container>
-      <AuthorName>{message.authorName} shared </AuthorName>
+      <AuthorName>
+        {message.authorName} {t("shared")}{" "}
+      </AuthorName>
       {resourceContent}
     </Container>
   );

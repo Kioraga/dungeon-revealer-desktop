@@ -5,6 +5,7 @@ import { useDrag, useGesture } from "react-use-gesture";
 import { Tooltip } from "@chakra-ui/react";
 import * as Icon from "./feather-icons";
 import * as Button from "./button";
+import { useI18n } from "./i18n";
 
 const WindowContainer = styled(animated.div)<{ isSideBarVisible: boolean }>`
   position: absolute;
@@ -96,6 +97,7 @@ export const DraggableWindow = ({
   sideBarContent?: React.ReactElement | null | undefined;
   setWidthRef?: React.MutableRefObject<SetWidthHandler | null>;
 }): JSX.Element => {
+  const { t } = useI18n();
   const [props, set] = useSpring(() => ({
     x: window.innerWidth / 2 - 500 / 2,
     y: window.innerHeight / 4,
@@ -223,7 +225,7 @@ export const DraggableWindow = ({
           </div>
         ))}
         <div style={{ marginRight: 0 }}>
-          <Button.Tertiary small iconOnly onClick={close} title="Close">
+          <Button.Tertiary small iconOnly onClick={close} title={t("Close")}>
             <Icon.X boxSize="16px" />
           </Button.Tertiary>
         </div>

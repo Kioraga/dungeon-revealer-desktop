@@ -6,6 +6,7 @@ import * as ScrollableList from "../components/scrollable-list";
 import { Input } from "../../input";
 import { useCurrent } from "../../hooks/use-current";
 import { noteEditorSideBar_searchQuery } from "./__generated__/noteEditorSideBar_searchQuery.graphql";
+import { useI18n } from "../../i18n";
 
 const NoteEditorSideBar_notesFragment = graphql`
   fragment noteEditorSideBar_notesFragment on Query
@@ -104,6 +105,7 @@ export const NoteEditorSideBar: React.FC<{
   notesRef: noteEditorSideBar_notesFragment$key;
   sideBarRefetchRef?: React.MutableRefObject<null | (() => void)>;
 }> = (props) => {
+  const { t } = useI18n();
   const [filter, setFilter] = React.useState("");
 
   const data = useQuery<noteEditorSideBar_searchQuery>(
@@ -137,7 +139,7 @@ export const NoteEditorSideBar: React.FC<{
       >
         <Input
           tabIndex={1}
-          placeholder="Search"
+          placeholder={t("Search")}
           value={filter}
           onChange={(ev) => setFilter(ev.target.value)}
           onKeyDown={(ev) => {

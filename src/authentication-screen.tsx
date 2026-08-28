@@ -5,6 +5,7 @@ import * as Button from "./button";
 import { BackgroundImageContainer } from "./background-image-container";
 import { BrandLogoText } from "./brand-logo-text";
 import { Modal, ModalDialogSize } from "./modal";
+import { useI18n } from "./i18n";
 
 const ButtonContainer = styled.div`
   margin-top: 16px;
@@ -30,6 +31,7 @@ export const AuthenticationScreen: React.FC<{
   requiredRole: "DM" | "PC";
   fetch: typeof fetch;
 }> = ({ onAuthenticate, requiredRole = "DM", fetch }) => {
+  const { t } = useI18n();
   const [password, setPassword] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
   return (
@@ -47,26 +49,34 @@ export const AuthenticationScreen: React.FC<{
           if (result.data.role === requiredRole || result.data.role === "DM") {
             onAuthenticate(password);
           } else {
-            setError("Invalid Password!");
+            setError(t("Invalid Password!"));
           }
         }}
       >
         <Input
           background="white"
-          placeholder={`${requiredRole === "DM" ? "DM" : "Player"} Password`}
+          placeholder={
+            requiredRole === "DM" ? t("DM Password") : t("Player Password")
+          }
           value={password}
           onChange={(ev) => setPassword(ev.target.value)}
         />
         <ButtonContainer>
           <ButtonColumn>
-            <Button.Primary type="submit">Log In</Button.Primary>
+            <Button.Primary type="submit">{t("Log In")}</Button.Primary>
           </ButtonColumn>
         </ButtonContainer>
         <div>
           {requiredRole === "DM" ? (
-            <Link href="/">Visit Player Section{" >"}</Link>
+            <Link href="/">
+              {t("Visit Player Section")}
+              {" >"}
+            </Link>
           ) : (
-            <Link href="/dm">Visit DM Section{" >"}</Link>
+            <Link href="/dm">
+              {t("Visit DM Section")}
+              {" >"}
+            </Link>
           )}
         </div>
       </form>
@@ -75,10 +85,10 @@ export const AuthenticationScreen: React.FC<{
         <Modal onPressEscape={() => undefined}>
           <Modal.Dialog size={ModalDialogSize.SMALL}>
             <Modal.Header>
-              <h3>Invalid Password</h3>
+              <h3>{t("Invalid Password")}</h3>
             </Modal.Header>
             <Modal.Body>
-              The password you entered is invalid. Please try again.{" "}
+              {t("The password you entered is invalid. Please try again.")}{" "}
               <ButtonContainer>
                 <ButtonColumn
                   onClick={() => {
@@ -86,7 +96,7 @@ export const AuthenticationScreen: React.FC<{
                     setPassword("");
                   }}
                 >
-                  <Button.Primary>Try again.</Button.Primary>
+                  <Button.Primary>{t("Try again.")}</Button.Primary>
                 </ButtonColumn>
               </ButtonContainer>
             </Modal.Body>

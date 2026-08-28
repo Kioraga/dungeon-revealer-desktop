@@ -95,6 +95,7 @@ import { UpdateTokenContext } from "../update-token-context";
 import { IsDungeonMasterContext } from "../is-dungeon-master-context";
 import { LazyLoadedMapView } from "../lazy-loaded-map-view";
 import type { DesktopDisplay } from "../desktop-api";
+import { useI18n, I18nContext } from "../i18n";
 
 type ToolMapRecord = {
   name: string;
@@ -104,6 +105,7 @@ type ToolMapRecord = {
 };
 
 const BrushSettings = (): React.ReactElement => {
+  const { t } = useI18n();
   const { state, setState } = React.useContext(BrushToolContext);
 
   const store = useCreateStore();
@@ -111,7 +113,7 @@ const BrushSettings = (): React.ReactElement => {
     () => ({
       brushSize: {
         type: LevaInputs.NUMBER,
-        label: "Brush Size",
+        label: t("Brush Size"),
         value: state.brushSize.get(),
         onChange: (value, _, { initial }) => {
           if (initial) {
@@ -124,18 +126,18 @@ const BrushSettings = (): React.ReactElement => {
         step: 1,
       },
       brushShape: levaPluginIconPicker({
-        label: "Brush Shape",
+        label: t("Brush Shape"),
         value: state.brushShape,
         options: [
           {
             value: BrushShape.square,
             icon: <Icon.Square boxSize="20px" />,
-            label: "Square",
+            label: t("Square"),
           },
           {
             value: BrushShape.circle,
             icon: <Icon.Circle boxSize="20px" />,
-            label: "Circle",
+            label: t("Circle"),
           },
         ],
         onChange: (brushShape, _, { initial }) => {
@@ -150,7 +152,7 @@ const BrushSettings = (): React.ReactElement => {
       }),
     }),
     { store },
-    [state.brushShape]
+    [state.brushShape, t]
   );
 
   return (
@@ -171,6 +173,7 @@ const BrushSettings = (): React.ReactElement => {
 };
 
 const AreaSelectSettings = (): React.ReactElement => {
+  const { t } = useI18n();
   const { state, setState } = React.useContext(AreaSelectContext);
 
   const store = useCreateStore();
@@ -178,14 +181,14 @@ const AreaSelectSettings = (): React.ReactElement => {
     () => ({
       snapToGrid: {
         type: LevaInputs.BOOLEAN,
-        label: "Snap to Grid",
+        label: t("Snap to Grid"),
         value: state.snapToGrid,
         onChange: (value) =>
           setState((state) => ({ ...state, snapToGrid: value })),
       },
     }),
     { store },
-    [state.snapToGrid]
+    [state.snapToGrid, t]
   );
 
   return (
@@ -206,6 +209,7 @@ const AreaSelectSettings = (): React.ReactElement => {
 };
 
 const ShroudRevealSettings = (): React.ReactElement => {
+  const { t } = useI18n();
   const { state, setState } = React.useContext(BrushToolContext);
   return (
     <>
@@ -216,7 +220,7 @@ const ShroudRevealSettings = (): React.ReactElement => {
           }
         >
           <Icon.Eye boxSize="20px" />
-          <Icon.Label>Reveal</Icon.Label>
+          <Icon.Label>{t("Reveal")}</Icon.Label>
         </Toolbar.Button>
       </Toolbar.Item>
       <Toolbar.Item isActive={state.fogMode === FogMode.shroud}>
@@ -226,7 +230,7 @@ const ShroudRevealSettings = (): React.ReactElement => {
           }
         >
           <Icon.EyeOff boxSize="20px" />
-          <Icon.Label>Shroud</Icon.Label>
+          <Icon.Label>{t("Shroud")}</Icon.Label>
         </Toolbar.Button>
       </Toolbar.Item>
     </>
@@ -265,6 +269,7 @@ const ShowGridSettingsPopup = React.memo(
     grid: dmMap_ShowGridSettingsPopupGridFragment$key;
     enterConfigureGridMode: () => void;
   }) => {
+    const { t } = useI18n();
     const [mapUpdateGrid] = useMutation<dmMap_mapUpdateGridMutation>(
       MapUpdateGridMutation
     );
@@ -299,12 +304,12 @@ const ShowGridSettingsPopup = React.memo(
         <VStack minWidth="300px" padding="3">
           <HStack width="100%" justifyContent="space-between">
             <Box>
-              <Heading size="xs">Grid Settings</Heading>
+              <Heading size="xs">{t("Grid Settings")}</Heading>
             </Box>
 
             <Box>
               <Button.Tertiary small onClick={props.enterConfigureGridMode}>
-                <span>Edit Grid </span>
+                <span>{t("Edit Grid ")}</span>
                 <Icon.Settings boxSize="12px" />
               </Button.Tertiary>
             </Box>
@@ -315,7 +320,7 @@ const ShowGridSettingsPopup = React.memo(
             alignItems="center"
             justifyContent="space-between"
           >
-            <FormLabel htmlFor="show-grid-toggle">Show Grid</FormLabel>
+            <FormLabel htmlFor="show-grid-toggle">{t("Show Grid")}</FormLabel>
             <Switch
               id="show-grid-toggle"
               size="lg"
@@ -332,7 +337,7 @@ const ShowGridSettingsPopup = React.memo(
             justifyContent="space-between"
           >
             <FormLabel htmlFor="show-grid-to-players-toggle">
-              Show Grid to players
+              {t("Show Grid to players")}
             </FormLabel>
             <Switch
               id="show-grid-to-players-toggle"
@@ -345,7 +350,7 @@ const ShowGridSettingsPopup = React.memo(
             />
           </FormControl>
           <FormControl>
-            <FormLabel>Color</FormLabel>
+            <FormLabel>{t("Color")}</FormLabel>
             <ColorPickerInput
               color={gridColor}
               onChange={(color) => {
@@ -373,6 +378,7 @@ const GridSettingButton = (props: {
   enterConfigureGridMode: () => void;
   map: dmMap_GridSettingButton_MapFragment$key;
 }): React.ReactElement => {
+  const { t } = useI18n();
   const map = useFragment(GridSettingButtonMapFragment, props.map);
   const [showMenu, setShowMenu] = React.useState(false);
   const ref = React.useRef<null | HTMLLIElement>(null);
@@ -388,10 +394,12 @@ const GridSettingButton = (props: {
         onClick={() => {
           if (!map.grid) {
             showDialog({
-              header: "Configure Grid",
-              body: "This map currently has no grid data. Do you wanna add a new grid using the grid configurator?",
+              header: t("Configure Grid"),
+              body: t(
+                "This map currently has no grid data. Do you wanna add a new grid using the grid configurator?"
+              ),
               onConfirm: props.enterConfigureGridMode,
-              confirmButtonText: "Add Grid",
+              confirmButtonText: t("Add Grid"),
             });
           } else {
             setShowMenu((showMenu) => !showMenu);
@@ -399,7 +407,7 @@ const GridSettingButton = (props: {
         }}
       >
         <Icon.Grid boxSize="20px" />
-        <Icon.Label>Grid</Icon.Label>
+        <Icon.Label>{t("Grid")}</Icon.Label>
       </Toolbar.Button>
       {showMenu && map.grid ? (
         <ShowGridSettingsPopup
@@ -414,6 +422,7 @@ const GridSettingButton = (props: {
 };
 
 const TokenMarkerSettings = (): React.ReactElement => {
+  const { t } = useI18n();
   const tokenMarkerContext = React.useContext(TokenMarkerContext);
   const configureGridContext = React.useContext(ConfigureGridMapToolContext);
 
@@ -424,7 +433,7 @@ const TokenMarkerSettings = (): React.ReactElement => {
     () => ({
       radius: {
         type: LevaInputs.NUMBER,
-        label: "Size",
+        label: t("Size"),
         value: tokenMarkerContext.state.tokenRadius.get(),
         step: 1,
         onChange: (value) => {
@@ -443,7 +452,7 @@ const TokenMarkerSettings = (): React.ReactElement => {
       }),
       color: {
         type: LevaInputs.COLOR,
-        label: "Color",
+        label: t("Color"),
         value: tokenMarkerContext.state.tokenColor ?? "rgb(255, 255, 255)",
         onChange: (color: string) => {
           tokenMarkerContext.setState((state) => ({
@@ -454,7 +463,7 @@ const TokenMarkerSettings = (): React.ReactElement => {
       },
       label: {
         type: LevaInputs.STRING,
-        label: "Label",
+        label: t("Label"),
         value: tokenMarkerContext.state.tokenText,
         optional: true,
         disabled: !tokenMarkerContext.state.includeTokenText,
@@ -472,7 +481,7 @@ const TokenMarkerSettings = (): React.ReactElement => {
       },
       counter: {
         type: LevaInputs.NUMBER,
-        label: "Counter",
+        label: t("Counter"),
         step: 1,
         min: 0,
         value: tokenMarkerContext.state.tokenCounter,
@@ -492,7 +501,7 @@ const TokenMarkerSettings = (): React.ReactElement => {
       },
     }),
     { store },
-    [tokenMarkerContext.state]
+    [tokenMarkerContext.state, t]
   );
 
   React.useEffect(() => {
@@ -532,7 +541,7 @@ const dmTools: Array<ToolMapRecord> = [
   },
   {
     name: "Brush",
-    icon: <Icon.Pen boxSize="20px" />,
+    icon: <Icon.Brush boxSize="20px" />,
     tool: BrushMapTool,
     MenuComponent: BrushSettings,
   },
@@ -623,6 +632,7 @@ export const DmMap = (props: {
   ) => void;
   controlRef: React.MutableRefObject<MapControlInterface | null>;
 }): React.ReactElement => {
+  const { t } = useI18n();
   const map = useFragment(DMMapFragment, props.map);
   const [mapPing] = useMutation<dmMap_MapPingMutation>(MapPingMutation);
   const controlRef = props.controlRef;
@@ -697,7 +707,7 @@ export const DmMap = (props: {
         ])
         .then(() => {
           showToast({
-            title: `Copied map image to clipboard.`,
+            title: t("Copied map image to clipboard."),
             status: "success",
             duration: 3000,
             isClosable: true,
@@ -851,6 +861,7 @@ export const DmMap = (props: {
             IsDungeonMasterContext,
             ContextMenuStoreContext,
             SharedTokenStateStoreContext,
+            I18nContext,
           ]}
           fogOpacity={0.5}
         />
@@ -881,8 +892,8 @@ export const DmMap = (props: {
                   <Toolbar.Button
                     onClick={() =>
                       showDialog({
-                        header: "Shroud All",
-                        body: "Do you really want to shroud the whole map?",
+                        header: t("Shroud All"),
+                        body: t("Do you really want to shroud the whole map?"),
                         onConfirm: () => {
                           // TODO: this should be less verbose
                           const context = controlRef.current?.getContext();
@@ -905,15 +916,17 @@ export const DmMap = (props: {
                     }
                   >
                     <Icon.Droplet fill="currentColor" boxSize="20px" />
-                    <Icon.Label>Shroud All</Icon.Label>
+                    <Icon.Label style={{ maxWidth: "42px" }}>
+                      {t("Shroud All")}
+                    </Icon.Label>
                   </Toolbar.Button>
                 </Toolbar.Item>
                 <Toolbar.Item isActive>
                   <Toolbar.Button
                     onClick={() =>
                       showDialog({
-                        header: "Clear All",
-                        body: "Do you really want to clear the whole map?",
+                        header: t("Clear All"),
+                        body: t("Do you really want to clear the whole map?"),
                         onConfirm: () => {
                           // TODO: this should be less verbose
                           const context = controlRef.current?.getContext();
@@ -936,7 +949,9 @@ export const DmMap = (props: {
                     }
                   >
                     <Icon.Droplet boxSize="20px" />
-                    <Icon.Label>Clear All</Icon.Label>
+                    <Icon.Label style={{ maxWidth: "42px" }}>
+                      {t("Clear All")}
+                    </Icon.Label>
                   </Toolbar.Button>
                 </Toolbar.Item>
               </Toolbar.Group>
@@ -958,7 +973,7 @@ export const DmMap = (props: {
                     }}
                   >
                     <Icon.Map boxSize="20px" />
-                    <Icon.Label>Map Library</Icon.Label>
+                    <Icon.Label>{t("Map Library")}</Icon.Label>
                   </Toolbar.Button>
                 </Toolbar.Item>
                 <Toolbar.Item isActive>
@@ -968,7 +983,7 @@ export const DmMap = (props: {
                     }}
                   >
                     <Icon.Image boxSize="20px" />
-                    <Icon.Label>Media Library</Icon.Label>
+                    <Icon.Label>{t("Media Library")}</Icon.Label>
                   </Toolbar.Button>
                 </Toolbar.Item>
                 <Toolbar.Item isActive>
@@ -978,7 +993,7 @@ export const DmMap = (props: {
                     }}
                   >
                     <Icon.BookOpen boxSize="20px" />
-                    <Icon.Label>Notes</Icon.Label>
+                    <Icon.Label>{t("Notes")}</Icon.Label>
                   </Toolbar.Button>
                 </Toolbar.Item>
               </Toolbar.Group>
@@ -1016,7 +1031,7 @@ export const DmMap = (props: {
                     <Icon.Label
                       color={isSharing ? "hsl(360, 83%, 62%)" : undefined}
                     >
-                      {isSharing ? "Stop Sharing" : "Start Sharing"}
+                      {isSharing ? t("Stop Sharing") : t("Start Sharing")}
                     </Icon.Label>
                   </Toolbar.Button>
                 </Toolbar.Item>
@@ -1024,7 +1039,7 @@ export const DmMap = (props: {
                   <Toolbar.Item isActive>
                     <Toolbar.Button onClick={copyMapToClipboard}>
                       <Icon.Clipboard boxSize="20px" />
-                      <Icon.Label>Clipboard</Icon.Label>
+                      <Icon.Label>{t("Clipboard")}</Icon.Label>
                     </Toolbar.Button>
                   </Toolbar.Item>
                 ) : null}
@@ -1035,7 +1050,7 @@ export const DmMap = (props: {
                       onMouseDown={(ev) => ev.stopPropagation()}
                     >
                       <Icon.Monitor boxSize="20px" />
-                      <Icon.Label>Screen</Icon.Label>
+                      <Icon.Label>{t("Screen")}</Icon.Label>
                     </Toolbar.Button>
                     {showDisplaySettings ? (
                       <DisplaySettingsPopup
@@ -1082,6 +1097,7 @@ const DisplaySettingsPopup = ({
   onSelect: (display: DesktopDisplay) => void;
   close: () => void;
 }): React.ReactElement | null => {
+  const { t } = useI18n();
   const [displays, setDisplays] = React.useState<DesktopDisplay[] | null>(null);
   const ref = React.useRef<null | HTMLDivElement>(null);
   useOnClickOutside<HTMLDivElement>(ref, close);
@@ -1101,10 +1117,10 @@ const DisplaySettingsPopup = ({
     <Toolbar.Popup>
       <div ref={ref} style={{ padding: 12, width: "max-content" }}>
         <Heading size="xs" marginBottom="2">
-          Player Screen
+          {t("Player Screen")}
         </Heading>
         {displays === null ? (
-          <Text>Loading displays...</Text>
+          <Text>{t("Loading displays...")}</Text>
         ) : (
           <ScreenButtonRow>
             {displays.map((display) => (
@@ -1197,6 +1213,7 @@ const MenuItemRenderer = (props: {
   setActiveTool: () => void;
   isActive: boolean;
 }): React.ReactElement => {
+  const { t } = useI18n();
   const [showMenu, setShowMenu] = React.useState(false);
   const ref = React.useRef<null | HTMLLIElement>(null);
   useOnClickOutside<HTMLLIElement>(ref, () => {
@@ -1212,7 +1229,7 @@ const MenuItemRenderer = (props: {
         }}
       >
         {props.record.icon}
-        <Icon.Label>{props.record.name} </Icon.Label>
+        <Icon.Label>{t(props.record.name)} </Icon.Label>
       </Toolbar.Button>
       {props.record.MenuComponent && props.isActive && showMenu ? (
         <Toolbar.Popup>
@@ -1236,6 +1253,7 @@ const GridConfigurator = (props: {
   onAbort: () => void;
   onConfirm: () => void;
 }): React.ReactElement => {
+  const { t } = useI18n();
   const map = useFragment(GridConfigurator_MapFragment, props.map);
   const [mapUpdateGrid] = useMutation<dmMap_mapUpdateGridMutation>(
     MapUpdateGridMutation
@@ -1255,14 +1273,13 @@ const GridConfigurator = (props: {
       backgroundColor="white"
       zIndex="1"
     >
-      <Heading size="lg">Grid Configurator</Heading>
+      <Heading size="lg">{t("Grid Configurator")}</Heading>
       <Text>
-        Press and hold <strong>Alt</strong> for dragging the grid with your
-        mouse.
+        {t("Press and hold Alt for dragging the grid with your mouse.")}
       </Text>
       <HStack>
         <FormControl>
-          <FormLabel>X-Coordinate</FormLabel>
+          <FormLabel>{t("X-Coordinate")}</FormLabel>
           <InputGroup size="sm">
             <NumberInput
               value={state.offsetX}
@@ -1286,7 +1303,7 @@ const GridConfigurator = (props: {
           </InputGroup>
         </FormControl>
         <FormControl>
-          <FormLabel>Y-Coordinate</FormLabel>
+          <FormLabel>{t("Y-Coordinate")}</FormLabel>
           <InputGroup size="sm">
             <NumberInput
               value={state.offsetY}
@@ -1312,7 +1329,7 @@ const GridConfigurator = (props: {
       </HStack>
       <HStack>
         <FormControl>
-          <FormLabel>Column Width</FormLabel>
+          <FormLabel>{t("Column Width")}</FormLabel>
           <InputGroup size="sm">
             <NumberInput
               value={state.columnWidth}
@@ -1336,7 +1353,7 @@ const GridConfigurator = (props: {
           </InputGroup>
         </FormControl>
         <FormControl>
-          <FormLabel>Column Height</FormLabel>
+          <FormLabel>{t("Column Height")}</FormLabel>
           <InputGroup size="sm">
             <NumberInput
               value={state.columnHeight}
@@ -1371,7 +1388,7 @@ const GridConfigurator = (props: {
             onClick={props.onAbort}
             danger
           >
-            <Icon.X boxSize="20px" /> <span>Abort</span>
+            <Icon.X boxSize="20px" /> <span>{t("Abort")}</span>
           </Button.Tertiary>
         </div>
         <div>
@@ -1398,7 +1415,7 @@ const GridConfigurator = (props: {
               });
             }}
           >
-            <span>Confirm</span> <Icon.ChevronRight boxSize="20px" />
+            <span>{t("Confirm")}</span> <Icon.ChevronRight boxSize="20px" />
           </Button.Primary>
         </div>
       </div>

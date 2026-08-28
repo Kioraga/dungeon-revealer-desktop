@@ -13,6 +13,7 @@ import { useSplashShareImageAction } from "../../hooks/use-splash-share-image-ac
 import { InputGroup } from "../../input";
 import { useSelectFileDialog } from "../../hooks/use-select-file-dialog";
 import { useAccessToken } from "../../hooks/use-access-token";
+import { useI18n } from "../../i18n";
 
 type MediaLibraryProps = {
   onClose: () => void;
@@ -128,6 +129,7 @@ const initialState: MediaLibraryState = {
 };
 
 export const MediaLibrary: React.FC<MediaLibraryProps> = ({ onClose }) => {
+  const { t } = useI18n();
   const [state, dispatch] = React.useReducer(stateReducer, initialState);
   const getIsMounted = useGetIsMounted();
   const accessToken = useAccessToken();
@@ -282,7 +284,7 @@ export const MediaLibrary: React.FC<MediaLibraryProps> = ({ onClose }) => {
       >
         <Modal.Header>
           <Modal.Heading2>
-            <Icon.Image boxSize="28px" /> Media Library
+            <Icon.Image boxSize="28px" /> {t("Media Library")}
           </Modal.Heading2>
           <div style={{ flex: 1, textAlign: "right" }}>
             <Button.Tertiary
@@ -290,7 +292,7 @@ export const MediaLibrary: React.FC<MediaLibraryProps> = ({ onClose }) => {
               style={{ marginLeft: 8 }}
               onClick={onClose}
             >
-              Close
+              {t("Close")}
             </Button.Tertiary>
           </div>
         </Modal.Header>
@@ -317,7 +319,7 @@ export const MediaLibrary: React.FC<MediaLibraryProps> = ({ onClose }) => {
               <div>
                 <Button.Primary onClick={showSelectFileDialog} role="button">
                   <Icon.Plus boxSize="24px" />
-                  <span>Upload new File</span>
+                  <span>{t("Upload new File")}</span>
                 </Button.Primary>
               </div>
             </Modal.ActionGroup>
@@ -336,6 +338,7 @@ const Item: React.FC<{
 }> = ({ item, deleteItem, updateItem }) => {
   const [showLightboxImage, setShowLightBoxImage] = React.useState(false);
   const [showEditModal, setShowEditModal] = React.useState(false);
+  const { t } = useI18n();
   const splashShareImage = useSplashShareImageAction();
 
   return (
@@ -347,7 +350,7 @@ const Item: React.FC<{
       <Menu data-menu>
         <Button.Primary
           small
-          title="Edit"
+          title={t("Edit")}
           iconOnly
           onClick={() => setShowEditModal(true)}
         >
@@ -355,7 +358,7 @@ const Item: React.FC<{
         </Button.Primary>
         <Button.Primary
           small
-          title="Splash Share"
+          title={t("Splash Share")}
           iconOnly
           onClick={() => splashShareImage(item.id)}
         >
@@ -363,7 +366,7 @@ const Item: React.FC<{
         </Button.Primary>
         <Button.Primary
           small
-          title="Maximize"
+          title={t("Maximize")}
           iconOnly
           onClick={() => setShowLightBoxImage(true)}
         >
@@ -405,16 +408,18 @@ const EditImageModal: React.FC<{
     [setInputValue]
   );
 
+  const { t } = useI18n();
+
   return (
     <Modal onClickOutside={onClose} onPressEscape={onClose}>
       <Modal.Dialog size={ModalDialogSize.SMALL}>
         <Modal.Header>
-          <Modal.Heading3>Edit Image</Modal.Heading3>
+          <Modal.Heading3>{t("Edit Image")}</Modal.Heading3>
         </Modal.Header>
         <Modal.Body>
           <InputGroup
             autoFocus
-            placeholder="Map title"
+            placeholder={t("Map title")}
             value={inputValue}
             onChange={onChangeInputValue}
             error={null}
@@ -426,14 +431,14 @@ const EditImageModal: React.FC<{
               <div>
                 <Button.Tertiary onClick={onDelete} type="button" danger>
                   <Icon.Trash boxSize="18px" />
-                  <span>Delete</span>
+                  <span>{t("Delete")}</span>
                 </Button.Tertiary>
               </div>
             </Modal.ActionGroup>
             <Modal.ActionGroup>
               <div>
                 <Button.Tertiary onClick={onClose} type="button">
-                  <span>Close</span>
+                  <span>{t("Close")}</span>
                 </Button.Tertiary>
               </div>
               <div>
@@ -444,7 +449,7 @@ const EditImageModal: React.FC<{
                     onConfirm({ title: inputValue });
                   }}
                 >
-                  <span>Save</span>
+                  <span>{t("Save")}</span>
                 </Button.Primary>
               </div>
             </Modal.ActionGroup>

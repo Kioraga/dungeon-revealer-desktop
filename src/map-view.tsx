@@ -33,6 +33,7 @@ import { useFragment, useSubscription } from "relay-hooks";
 import { buttonGroup, useControls, useCreateStore, LevaInputs } from "leva";
 import { levaPluginNoteReference } from "./leva-plugin/leva-plugin-note-reference";
 import { levaPluginTokenImage } from "./leva-plugin/leva-plugin-token-image";
+import { useI18n } from "./i18n";
 import { useMarkArea } from "./map-tools/player-map-tool";
 import { ContextMenuState, useShowContextMenu } from "./map-context-menu";
 import {
@@ -209,6 +210,7 @@ const TokenRenderer = (props: {
   token: mapView_TokenRendererMapTokenFragment$key;
   columnWidth: number | null;
 }) => {
+  const { t } = useI18n();
   const token = useFragment(TokenRendererMapTokenFragment, props.token);
   const sharedMapState = React.useContext(SharedMapState);
   const updateToken = React.useContext(UpdateTokenContext);
@@ -241,7 +243,7 @@ const TokenRenderer = (props: {
     () => ({
       position: {
         type: LevaInputs.VECTOR2D,
-        label: "Position",
+        label: t("Position"),
         value: [token.x, token.y],
         step: 1,
         onChange: (value: [number, number], _, { initial, fromPanel }) => {
@@ -275,7 +277,7 @@ const TokenRenderer = (props: {
       },
       radius: {
         type: LevaInputs.NUMBER,
-        label: "Size",
+        label: t("Size"),
         value: token.radius,
         step: 1,
         min: 1,
@@ -320,7 +322,7 @@ const TokenRenderer = (props: {
       }),
       rotation: {
         type: LevaInputs.NUMBER,
-        label: "Rotation",
+        label: t("Rotation"),
         min: 0,
         max: 360,
         step: 1,
@@ -351,7 +353,7 @@ const TokenRenderer = (props: {
       },
       isLocked: {
         type: LevaInputs.BOOLEAN,
-        label: "Position locked",
+        label: t("Position locked"),
         value: token.isLocked,
         onChange: (isLocked: boolean, _, { initial, fromPanel }) => {
           if (initial || !fromPanel) {
@@ -365,7 +367,7 @@ const TokenRenderer = (props: {
       },
       text: {
         type: LevaInputs.STRING,
-        label: "Title",
+        label: t("Title"),
         value: typeof token.label === "string" ? token.label : "",
         onChange: (label: string, _, { initial, fromPanel }) => {
           if (initial || !fromPanel) {
@@ -379,7 +381,7 @@ const TokenRenderer = (props: {
       },
       labelColor: {
         type: LevaInputs.COLOR,
-        label: "Title Color",
+        label: t("Title Color"),
         value: token.labelColor ?? "rgb(0, 0, 0)",
         onChange: (labelColor: string, _, { initial, fromPanel }) => {
           if (initial || !fromPanel) {
@@ -392,7 +394,7 @@ const TokenRenderer = (props: {
       },
       color: {
         type: LevaInputs.COLOR,
-        label: "Color",
+        label: t("Color"),
         value: token.color ?? "rgb(255, 255, 255)",
         onChange: (color: string, _, { initial, fromPanel }) => {
           if (initial || !fromPanel) {
@@ -413,7 +415,7 @@ const TokenRenderer = (props: {
       },
       isVisibleForPlayers: {
         type: LevaInputs.BOOLEAN,
-        label: "Visible to players",
+        label: t("Visible to players"),
         value: token.isVisibleForPlayers,
         onChange: (isVisibleForPlayers: boolean, _, { initial, fromPanel }) => {
           if (initial || !fromPanel) {
@@ -421,20 +423,6 @@ const TokenRenderer = (props: {
           }
           updateToken(props.id, {
             isVisibleForPlayers,
-          });
-        },
-        transient: false,
-      },
-      isMovableByPlayers: {
-        type: LevaInputs.BOOLEAN,
-        label: "Movable by players",
-        value: token.isMovableByPlayers,
-        onChange: (isMovableByPlayers: boolean, _, { initial, fromPanel }) => {
-          if (initial || !fromPanel) {
-            return;
-          }
-          updateToken(props.id, {
-            isMovableByPlayers,
           });
         },
         transient: false,
@@ -464,7 +452,8 @@ const TokenRenderer = (props: {
         transient: false,
       }),
     }),
-    { store }
+    { store },
+    [t]
   );
   React.useEffect(() => {
     updateRadiusRef.current = (value) => {
@@ -481,7 +470,6 @@ const TokenRenderer = (props: {
       text: token.label,
       labelColor: token.labelColor,
       isLocked: token.isLocked,
-      isMovableByPlayers: token.isMovableByPlayers,
       isVisibleForPlayers: token.isVisibleForPlayers,
       referenceId: token.referenceId,
       tokenImageId: token.tokenImage?.id ?? null,
@@ -509,7 +497,6 @@ const TokenRenderer = (props: {
     token.label,
     token.isLocked,
     token.color,
-    token.isMovableByPlayers,
     token.isVisibleForPlayers,
     token.referenceId,
     token.tokenImage?.id,
@@ -521,9 +508,7 @@ const TokenRenderer = (props: {
   );
 
   const isDungeonMaster = React.useContext(IsDungeonMasterContext);
-  const isMovable =
-    (isDungeonMaster === true || values.isMovableByPlayers === true) &&
-    values.isLocked === false;
+  const isMovable = isDungeonMaster === true && values.isLocked === false;
   const isLocked = values.isLocked;
 
   const [isHover, setIsHover] = React.useState(false);

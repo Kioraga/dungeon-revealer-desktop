@@ -18,6 +18,7 @@ import * as Icon from "../../feather-icons";
 import { useCurrent } from "../../hooks/use-current";
 import { tokenInfoSideBar_NotesFragment$key } from "./__generated__/tokenInfoSideBar_NotesFragment.graphql";
 import { tokenInfoSideBar_NotesQuery } from "./__generated__/tokenInfoSideBar_NotesQuery.graphql";
+import { useI18n } from "../../i18n";
 import { useNoteWindowActions } from ".";
 import { tokenInfoSideBar_SearchQuery } from "./__generated__/tokenInfoSideBar_SearchQuery.graphql";
 import { tokenInfoSideBar_NotesUpdatesSubscription } from "./__generated__/tokenInfoSideBar_NotesUpdatesSubscription.graphql";
@@ -67,6 +68,7 @@ const TokenInfoSideBarRenderer = (props: {
   setShowAll: (showAll: boolean) => void;
   showAll: boolean;
 }): React.ReactElement => {
+  const { t } = useI18n();
   const { data, isLoading, hasNext, loadNext } = usePagination(
     TokenInfoSideBar_NotesFragment,
     props.notesRef
@@ -188,7 +190,7 @@ const TokenInfoSideBarRenderer = (props: {
       </ScrollableList.List>
       <FormControl display="flex" alignItems="center" padding="2">
         <FormLabel htmlFor="show-entrypoints" mb="0">
-          Show all notes
+          {t("Show all notes")}
         </FormLabel>
         <Switch
           id="show-entrypoints"
@@ -252,6 +254,7 @@ export const TokenInfoSideBar = (props: {
   windowId: string;
   activeNoteId: string | null;
 }): React.ReactElement | null => {
+  const { t } = useI18n();
   const [filter, setFilter] = React.useState("");
   const [showAll, setShowAll] = React.useState(false);
   const notesResult = useQuery<tokenInfoSideBar_NotesQuery>(
@@ -300,7 +303,7 @@ export const TokenInfoSideBar = (props: {
             children={<Icon.Search stroke="gray" boxSize="16px" />}
           />
           <Input
-            placeholder="Search Note"
+            placeholder={t("Search Note")}
             value={filter}
             onChange={(ev) => setFilter(ev.target.value)}
           />

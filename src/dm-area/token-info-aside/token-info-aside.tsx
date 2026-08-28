@@ -36,6 +36,7 @@ import { tokenInfoAside_NoteDeleteMutation } from "./__generated__/tokenInfoAsid
 import { useConfirmationDialog } from "../../hooks/use-confirmation-dialog";
 import { useViewerRole } from "../../authenticated-app-shell";
 import { tokenInfoAside_noteUpdateIsEntryPointMutation } from "./__generated__/tokenInfoAside_noteUpdateIsEntryPointMutation.graphql";
+import { useI18n } from "../../i18n";
 
 const TokenInfoAside_permissionsPopUpFragment = graphql`
   fragment tokenInfoAside_permissionsPopUpFragment on Note {
@@ -163,6 +164,7 @@ const PermissionsMenu = (props: {
   position: { x: number; y: number };
   fragmentRef: tokenInfoAside_permissionsPopUpFragment$key;
 }) => {
+  const { t } = useI18n();
   const data = useFragment(
     TokenInfoAside_permissionsPopUpFragment,
     props.fragmentRef
@@ -188,9 +190,9 @@ const PermissionsMenu = (props: {
     >
       <Stack spacing="2">
         <FormControl size="xs">
-          <FormLabel fontSize="sm">Access</FormLabel>
+          <FormLabel fontSize="sm">{t("Access")}</FormLabel>
           <HorizontalNavigation.Group>
-            <Tooltip label="Only the DM can access this note.">
+            <Tooltip label={t("Only the DM can access this note.")}>
               <HorizontalNavigation.Button
                 small
                 isActive={data.access === "admin"}
@@ -200,10 +202,10 @@ const PermissionsMenu = (props: {
                   })
                 }
               >
-                Admin
+                {t("Admin")}
               </HorizontalNavigation.Button>
             </Tooltip>
-            <Tooltip label="Everyone can access this note.">
+            <Tooltip label={t("Everyone can access this note.")}>
               <HorizontalNavigation.Button
                 small
                 isActive={data.access === "public"}
@@ -213,15 +215,15 @@ const PermissionsMenu = (props: {
                   })
                 }
               >
-                Public
+                {t("Public")}
               </HorizontalNavigation.Button>
             </Tooltip>
           </HorizontalNavigation.Group>
         </FormControl>
-        <Tooltip label="Whether the note is a entry point.">
+        <Tooltip label={t("Whether the note is a entry point.")}>
           <FormControl display="flex" alignItems="center" size="xs">
             <FormLabel fontSize="sm" htmlFor="is-entry-point-toggle" mb="0">
-              Entry Point
+              {t("Entry Point")}
             </FormLabel>
             <Switch
               size="sm"
@@ -260,6 +262,7 @@ const WindowRenderer = (props: {
   replaceCurrent: (noteId: string | null) => void;
   initialShowLibrary: boolean;
 }) => {
+  const { t } = useI18n();
   const isSkipped = props.noteId === null;
   const data = useQuery<tokenInfoAside_nodeQuery>(
     TokenInfoAside_nodeQuery,
@@ -302,7 +305,7 @@ const WindowRenderer = (props: {
       ? [
           {
             onClick: () => setIsEditMode((isEditMode) => !isEditMode),
-            title: isEditMode ? "Save" : "Edit",
+            title: isEditMode ? t("Save") : t("Edit"),
             icon: isEditMode ? (
               <Icon.Save boxSize="16px" />
             ) : (
@@ -313,10 +316,10 @@ const WindowRenderer = (props: {
           {
             onClick: () => {
               showConfirmationDialog({
-                header: "Delete Note",
-                body: "Do you really want to delete this note?",
-                cancelButtonText: "Abort",
-                confirmButtonText: "Delete",
+                header: t("Delete Note"),
+                body: t("Do you really want to delete this note?"),
+                cancelButtonText: t("Abort"),
+                confirmButtonText: t("Delete"),
                 onConfirm: () => {
                   const noteId = node.id;
 
@@ -332,7 +335,7 @@ const WindowRenderer = (props: {
                 },
               });
             },
-            title: "Delete note",
+            title: t("Delete note"),
             icon: <Icon.Trash boxSize="16px" />,
             isDisabled: props.noteId === null || !data.data,
           },
@@ -348,7 +351,7 @@ const WindowRenderer = (props: {
                 />
               );
             },
-            title: "Edit access",
+            title: t("Edit access"),
             icon: <Icon.Eye boxSize="16px" />,
             isDisabled: props.noteId === null || !data.data,
           },
@@ -364,7 +367,7 @@ const WindowRenderer = (props: {
                   variables: { input: { contentId: node.id } },
                 })
               : () => undefined,
-          title: "Share",
+          title: t("Share"),
           icon: <Icon.Share boxSize="16px" />,
           isDisabled: props.noteId === null || !data.data,
         },
@@ -414,7 +417,7 @@ const WindowRenderer = (props: {
         }}
         headerLeftContent={
           <>
-            <Tooltip label="Open library">
+            <Tooltip label={t("Open library")}>
               <Button.Tertiary
                 small
                 iconOnly
@@ -424,7 +427,7 @@ const WindowRenderer = (props: {
               </Button.Tertiary>
             </Tooltip>
             {isDm ? (
-              <Tooltip label="Create new note">
+              <Tooltip label={t("Create new note")}>
                 <Button.Tertiary
                   small
                   iconOnly
@@ -469,7 +472,7 @@ const WindowRenderer = (props: {
               node.title
             )
           ) : isLoading ? (
-            "Loading..."
+            t("Loading...")
           ) : isSkipped ? null : (
             "NOT FOUND"
           )
@@ -501,13 +504,13 @@ const WindowRenderer = (props: {
               }}
             >
               {isLoading ? (
-                "Loading..."
+                t("Loading...")
               ) : isSkipped ? (
                 <>
                   <VStack>
                     {viewerRole === "DM" ? (
                       <>
-                        <Text>Open or create a new note</Text>
+                        <Text>{t("Open or create a new note")}</Text>
                         <Box>
                           <Button.Primary
                             small
@@ -516,17 +519,17 @@ const WindowRenderer = (props: {
                             }}
                           >
                             <Icon.FilePlus boxSize="16px" />
-                            <span>Create new note</span>
+                            <span>{t("Create new note")}</span>
                           </Button.Primary>
                         </Box>
                       </>
                     ) : (
-                      <Text>Open a note!</Text>
+                      <Text>{t("Open a note!")}</Text>
                     )}
                   </VStack>
                 </>
               ) : (
-                "This note does no longer exist."
+                t("This note does no longer exist.")
               )}
             </div>
           )

@@ -9,6 +9,7 @@ import { selectNoteModal_NotesQuery } from "./__generated__/selectNoteModal_Note
 import { selectNoteModal_ActiveContentQuery } from "./__generated__/selectNoteModal_ActiveContentQuery.graphql";
 import { NoteEditorSideBar } from "./note-editor/note-editor-side-bar";
 import { selectNoteModal_NoteCreateMutation } from "./__generated__/selectNoteModal_NoteCreateMutation.graphql";
+import { useI18n } from "../i18n";
 
 const SelectNoteModal_ReferenceQuery = graphql`
   query selectNoteModal_NotesQuery {
@@ -131,11 +132,13 @@ export const SelectNoteModal: React.FC<{
 
   if (!sideBarData?.data) return null;
 
+  const { t } = useI18n();
+
   return (
     <Modal onPressEscape={props.onClose} onClickOutside={props.onClose}>
       <Modal.Dialog>
         <Modal.Header>
-          <Modal.Heading3>Attach Note</Modal.Heading3>
+          <Modal.Heading3>{t("Attach Note")}</Modal.Heading3>
         </Modal.Header>
         <Modal.Body style={{ display: "flex", height: "70vh" }} noPadding>
           <Modal.Aside>
@@ -158,21 +161,23 @@ export const SelectNoteModal: React.FC<{
           <Modal.Actions>
             <Modal.ActionGroup>
               <div>
-                <Button.Tertiary onClick={props.onClose}>Abort</Button.Tertiary>
+                <Button.Tertiary onClick={props.onClose}>
+                  {t("Abort")}
+                </Button.Tertiary>
               </div>
               <div>
                 <Button.Primary tabIndex={1} onClick={attachNewNote}>
-                  Create new Note
+                  {t("Create new Note")}
                 </Button.Primary>
               </div>
-              <OrSeperator>or</OrSeperator>
+              <OrSeperator>{t("or")}</OrSeperator>
               <div>
                 <Button.Primary
                   tabIndex={1}
                   onClick={attachExistingNote}
                   disabled={activeNoteId === null}
                 >
-                  Link Note
+                  {t("Link Note")}
                 </Button.Primary>
               </div>
             </Modal.ActionGroup>
