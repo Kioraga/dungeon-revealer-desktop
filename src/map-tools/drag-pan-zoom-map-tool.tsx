@@ -50,10 +50,21 @@ export const usePinchWheelZoom = (mapToolState: SharedMapToolState) => {
 
   const onUnmountRef = React.useRef<() => void>();
   React.useEffect(() => () => onUnmountRef.current?.(), []);
+  // The player-viewport rectangle floats over the mirror canvas (pointerEvents:
+  // auto), so wheel/pinch events over it target the rectangle, not the canvas.
+  // Treat anything inside the map surface (the mirror container holds both the
+  // canvas and the rectangle) as the map surface so zoom keeps working there.
+  // Scoping to the surface keeps the hidden DM view's tool from reacting.
+  const isMapSurface = (event: { target: EventTarget | null }) =>
+    event.target === mapToolState.canvas ||
+    (event.target instanceof Element &&
+      mapToolState.canvas
+        .closest("[data-map-surface]")
+        ?.contains(event.target));
   useGesture(
     {
       onWheel: ({ event }) => {
-        if (event.target !== mapToolState.canvas) {
+        if (!isMapSurface(event)) {
           return;
         }
         event.preventDefault();
@@ -66,7 +77,7 @@ export const usePinchWheelZoom = (mapToolState: SharedMapToolState) => {
         updateZoom({ pinchDelta, pinchScale, origin });
       },
       onPinch: ({ movement, event, origin, last, cancel }) => {
-        if (event.target !== mapToolState.canvas) {
+        if (!isMapSurface(event)) {
           return;
         }
         event.preventDefault();

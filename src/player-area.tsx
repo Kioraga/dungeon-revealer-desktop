@@ -301,6 +301,7 @@ export const PlayerMapView = ({
   return (
     <>
       <div
+        data-map-surface
         style={{
           cursor: isMapOnly ? "default" : "grab",
           background: "black",
