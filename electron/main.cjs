@@ -51,6 +51,7 @@ if (!app.requestSingleInstanceLock()) {
         "Show your tabletop RPG maps to players on a projector or second screen.",
       author: "Author",
       license: "License",
+      versions: "Versions",
       ok: "OK",
     },
     es: {
@@ -59,6 +60,7 @@ if (!app.requestSingleInstanceLock()) {
         "Muestra los mapas de tu juego de rol a los jugadores en un proyector o segunda pantalla.",
       author: "Autor",
       license: "Licencia",
+      versions: "Versiones",
       ok: "Aceptar",
     },
   };
@@ -84,7 +86,7 @@ if (!app.requestSingleInstanceLock()) {
       type: "info",
       title: text.title,
       message: `${PRODUCT_DISPLAY_NAME} v${app.getVersion()}`,
-      detail: `${text.description}\n\n${text.author}: ${authors}\n${text.license}: ${pkg.license}`,
+      detail: `${text.description}\n\n${text.author}: ${authors}\n${text.license}: ${pkg.license}\n${text.versions}: Electron ${process.versions.electron} / Node.js ${process.versions.node} / Chromium ${process.versions.chrome}`,
       buttons: [text.ok],
     });
   };
