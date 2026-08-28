@@ -56,6 +56,7 @@ const ToolbarItem = styled.li<{
   horizontal?: boolean;
   isEnabled?: boolean;
   isActive?: boolean;
+  accent?: boolean;
 }>`
   position: relative;
   flex: ${(p) => (p.horizontal ? "1" : null)};
@@ -74,7 +75,9 @@ const ToolbarItem = styled.li<{
   }
 
   color: ${(p) =>
-    p.isActive || p.isEnabled
+    !p.horizontal && p.isActive && p.accent !== false
+      ? "var(--color-accent)"
+      : p.isActive || p.isEnabled
       ? "var(--color-toolbar-active)"
       : "var(--color-text-muted)"};
 
@@ -97,7 +100,9 @@ const ToolbarItem = styled.li<{
 
   svg {
     stroke: ${(p) =>
-      p.isActive || p.isEnabled
+      !p.horizontal && p.isActive && p.accent !== false
+        ? "var(--color-accent)"
+        : p.isActive || p.isEnabled
         ? "var(--color-toolbar-active)"
         : "var(--color-text-muted)"};
   }
@@ -223,8 +228,11 @@ const Group: React.FC<
 
 const Item = React.forwardRef<
   HTMLLIElement,
-  Exclude<React.ComponentProps<"li">, "style"> & { isActive?: boolean }
->(({ children, isActive, style, ...props }, ref) => {
+  Exclude<React.ComponentProps<"li">, "style"> & {
+    isActive?: boolean;
+    accent?: boolean;
+  }
+>(({ children, isActive, accent, style, ...props }, ref) => {
   const { horizontal } = React.useContext(ToolbarContext);
 
   return (
@@ -232,6 +240,7 @@ const Item = React.forwardRef<
       {...props}
       horizontal={horizontal}
       isActive={isActive}
+      accent={accent}
       ref={ref}
     >
       {children}

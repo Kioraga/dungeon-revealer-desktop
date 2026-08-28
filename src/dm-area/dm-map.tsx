@@ -888,7 +888,7 @@ export const DmMap = (props: {
                 <ShroudRevealSettings />
               </Toolbar.Group>
               <Toolbar.Group divider>
-                <Toolbar.Item isActive>
+                <Toolbar.Item isActive accent={false}>
                   <Toolbar.Button
                     onClick={() =>
                       showDialog({
@@ -921,7 +921,7 @@ export const DmMap = (props: {
                     </Icon.Label>
                   </Toolbar.Button>
                 </Toolbar.Item>
-                <Toolbar.Item isActive>
+                <Toolbar.Item isActive accent={false}>
                   <Toolbar.Button
                     onClick={() =>
                       showDialog({
