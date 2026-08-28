@@ -7,20 +7,36 @@ const path = require("path");
 // Theme id = css filename in data/themes, so only safe filename characters.
 const THEME_ID = /^[A-Za-z0-9_-]+$/;
 
+// Bump when built-in palettes change so shipped updates overwrite the seeded
+// copies. User themes (other filenames) are never touched.
+// ponytail: edits to built-in themes reset on version bump; switch to per-file
+// fingerprints if built-in edits must survive upgrades.
+const THEMES_VERSION = "2";
+
 module.exports = ({ dataDirectory, builtinThemesDirectory }) => {
   const themesDirectory = path.join(dataDirectory, "themes");
   fs.mkdirSync(themesDirectory, { recursive: true });
 
   // Seed the built-in themes (from build/themes) so users get editable copies.
-  // ponytail: copy-if-missing only — deleting a built-in reappears on restart.
-  // Add a "seeded" marker file if users should be able to remove built-ins.
   if (builtinThemesDirectory && fs.existsSync(builtinThemesDirectory)) {
+    let currentVersion = null;
+    try {
+      currentVersion = fs
+        .readFileSync(path.join(themesDirectory, ".version"), "utf8")
+        .trim();
+    } catch (e) {
+      // first run: no .version yet, seed built-ins
+    }
+    const refreshBuiltins = currentVersion !== THEMES_VERSION;
     for (const file of fs.readdirSync(builtinThemesDirectory)) {
       if (!file.endsWith(".css")) continue;
       const target = path.join(themesDirectory, file);
-      if (!fs.existsSync(target)) {
+      if (refreshBuiltins || !fs.existsSync(target)) {
         fs.copyFileSync(path.join(builtinThemesDirectory, file), target);
       }
+    }
+    if (refreshBuiltins) {
+      fs.writeFileSync(path.join(themesDirectory, ".version"), THEMES_VERSION);
     }
   }
 
