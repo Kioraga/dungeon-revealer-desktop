@@ -299,7 +299,7 @@ export const TokenInfoSideBar = (props: {
       <Box
         padding="2"
         height="50px"
-        borderBottom="1px solid var(--color-border)"
+        borderBottom="1px solid var(--color-separator)"
       >
         <InputGroup size="sm">
           <InputLeftElement

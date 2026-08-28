@@ -24,7 +24,7 @@ const WindowHeader = styled.div`
   height: 50px;
   display: flex;
   padding: 8px 12px;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-separator);
   cursor: grab;
   align-items: center;
   justify-content: flex-end;

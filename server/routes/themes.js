@@ -11,7 +11,7 @@ const THEME_ID = /^[A-Za-z0-9_-]+$/;
 // copies. User themes (other filenames) are never touched.
 // ponytail: edits to built-in themes reset on version bump; switch to per-file
 // fingerprints if built-in edits must survive upgrades.
-const THEMES_VERSION = "2";
+const THEMES_VERSION = "4";
 
 module.exports = ({ dataDirectory, builtinThemesDirectory }) => {
   const themesDirectory = path.join(dataDirectory, "themes");

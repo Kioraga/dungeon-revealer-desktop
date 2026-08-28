@@ -221,7 +221,7 @@ const Dialog: React.FC<
 const Header = styled.div`
   padding: 8px 20px;
   width: 100%;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid var(--color-separator);
   display: flex;
   align-items: center;
 `;
@@ -251,7 +251,7 @@ const Aside = styled.div`
   flex-direction: column;
   max-width: 30%;
   width: 100%;
-  border-right: 1px solid rgba(0, 0, 0, 0.1);
+  border-right: 1px solid var(--color-separator);
 `;
 
 const Footer = styled.div`
@@ -261,7 +261,7 @@ const Footer = styled.div`
   padding-bottom: 16px;
   display: flex;
   justify-content: flex-end;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: 1px solid var(--color-separator);
 `;
 
 const Content = styled.div`

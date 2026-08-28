@@ -41,9 +41,9 @@ const ToolbarGroup = styled.ul<{
   padding: 0;
   padding-bottom: ${(p) => (!p.horizontal ? MARGIN_2 : null)};
   border-bottom: ${(p) =>
-    p.divider && !p.vertical ? "1px solid var(--color-border)" : null};
+    p.divider && !p.vertical ? "1px solid var(--color-separator)" : null};
   border-right: ${(p) =>
-    p.horizontal && p.vertical ? "1px solid var(--color-border)" : null};
+    p.horizontal && p.vertical ? "1px solid var(--color-separator)" : null};
   list-style: none;
   background-color: var(--color-surface);
 

@@ -122,7 +122,7 @@ const NoteEditorSideReference = styled.div`
   width: 300px;
   background: var(--color-surface);
   color: var(--color-text);
-  border-left: 1px solid var(--color-border);
+  border-left: 1px solid var(--color-separator);
   border-radius: 5px;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
 `;

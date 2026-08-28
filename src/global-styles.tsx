@@ -11,6 +11,7 @@ export const globalStyles = css`
     --color-surface: #ffffff;
     --color-surface-hover: #f0f4f8;
     --color-border: #cbd2d9;
+    --color-separator: #e3e7ea;
     --color-text: #3e4c58;
     --color-text-muted: #9eb2c7;
     --color-toolbar-active: #223c07;

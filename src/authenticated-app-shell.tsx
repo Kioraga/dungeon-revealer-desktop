@@ -57,7 +57,7 @@ const IconContainer = styled(animated.div)`
 const Aside = styled.div<{ width: number }>`
   height: 100%;
   width: ${(p) => p.width}px;
-  border-left: 1px solid var(--color-border);
+  border-left: 1px solid var(--color-separator);
   pointer-events: all;
   background: var(--color-surface);
 `;

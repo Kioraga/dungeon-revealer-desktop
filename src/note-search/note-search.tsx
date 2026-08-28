@@ -99,7 +99,7 @@ const Result = styled.button`
   border: 0;
   padding-bottom: 4px;
   padding-top: 4px;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-separator);
   width: 100%;
   padding-left: 12px;
   padding-right: 12px;
