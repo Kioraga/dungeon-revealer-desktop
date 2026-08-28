@@ -1,6 +1,6 @@
 # Dungeon Revealer Desktop
 
-Show your tabletop RPG maps to players on a projector or second screen. You control everything — they just watch.
+Show your tabletop RPG maps to players on a projector or second screen. You control everything, they just watch.
 
 Built on top of [dungeon-revealer](https://github.com/dungeon-revealer/dungeon-revealer).
 
