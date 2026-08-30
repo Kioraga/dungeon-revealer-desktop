@@ -17,6 +17,7 @@ __generated__
 dist
 public/monaco-editor
 server/version.ts
+release
 
 # Runtime Data/ Persisted Data #
 ################################

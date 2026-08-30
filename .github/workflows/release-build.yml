@@ -20,22 +20,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
       - uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: npm
       - run: npm ci
-      - name: Sync version to release tag
-        shell: bash
-        run: |
-          if [ "${{ github.event_name }}" = "release" ]; then
-            TAG="${{ github.event.release.tag_name }}"
-          else
-            TAG="$(gh release view --json tagName -q .tagName)"
-          fi
-          npm version "${TAG#v}" --no-git-tag-version
       - run: npm run build
       - name: Package AppImage (linux)
         if: matrix.platform == 'linux'
