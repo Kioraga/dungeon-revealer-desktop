@@ -1,6 +1,6 @@
 {
   "name": "dungeon-revealer-desktop",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Show your tabletop RPG maps to players on a projector or second screen.",
   "main": "electron/main.cjs",
   "license": "ISC",
