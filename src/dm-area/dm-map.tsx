@@ -664,15 +664,16 @@ export const DmMap = (props: {
   });
 
   // Always have a display selected: default to the primary one when nothing
-  // has been persisted yet, persisting its stable name.
+  // has been persisted yet, persisting its stable name (or id as a fallback
+  // for platforms where the label is empty).
   React.useEffect(() => {
     if (selectedDisplayKey !== null || !window.desktopApi) return;
     window.desktopApi
       .listDisplays()
       .then((displays) => {
         const primary = displays.find((d) => d.isPrimary) ?? displays[0];
-        if (primary?.name) {
-          setSelectedDisplayKey(primary.name);
+        if (primary) {
+          setSelectedDisplayKey(primary.name ?? String(primary.id));
         }
       })
       .catch(() => {});
@@ -1056,7 +1057,9 @@ export const DmMap = (props: {
                       <DisplaySettingsPopup
                         selectedKey={selectedDisplayKey}
                         onSelect={(display) => {
-                          setSelectedDisplayKey(display.name ?? null);
+                          setSelectedDisplayKey(
+                            display.name ?? String(display.id)
+                          );
                           window.desktopApi?.setPlayerDisplay(
                             String(display.id)
                           );
@@ -1127,8 +1130,9 @@ const DisplaySettingsPopup = ({
               <ScreenButton
                 key={display.id}
                 isActive={
-                  String(display.id) === selectedKey ||
-                  (display.name ?? null) === selectedKey
+                  selectedKey !== null &&
+                  (String(display.id) === selectedKey ||
+                    (display.name ?? null) === selectedKey)
                 }
                 onClick={() => onSelect(display)}
               >
