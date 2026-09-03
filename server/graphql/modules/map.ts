@@ -229,9 +229,21 @@ const GraphQLMapUpdateGridResultType = t.objectType<lib.MapUpdateGridResult>({
   ],
 });
 
+const GraphQLGridTypeEnum = t.enumType<"square" | "hex">({
+  name: "GridType",
+  description: "The shape of the cells of the grid.",
+  values: [
+    { name: "square", value: "square" },
+    { name: "hex", value: "hex" },
+  ],
+});
+
 const GraphQLGridInputType = t.inputObjectType({
   name: "GridInput",
   fields: () => ({
+    type: {
+      type: t.NonNullInput(GraphQLGridTypeEnum),
+    },
     color: {
       type: t.NonNullInput(t.String),
     },
@@ -255,6 +267,9 @@ const GraphQLMapUpdateGridInputType = t.inputObjectType({
       type: t.NonNullInput(t.Boolean),
     },
     showGridToPlayers: {
+      type: t.NonNullInput(t.Boolean),
+    },
+    snapTokensToGrid: {
       type: t.NonNullInput(t.Boolean),
     },
   }),
@@ -407,6 +422,10 @@ export const mutationFields = [
 const GraphQLMapGridType = t.objectType<MapGridEntity>({
   name: "MapGrid",
   fields: () => [
+    t.field({
+      name: "type",
+      type: t.NonNull(GraphQLGridTypeEnum),
+    }),
     t.field({
       name: "color",
       type: t.NonNull(t.String),
@@ -581,6 +600,10 @@ const GraphQLMapType = t.objectType<MapEntity>({
     }),
     t.field({
       name: "showGridToPlayers",
+      type: t.NonNull(t.Boolean),
+    }),
+    t.field({
+      name: "snapTokensToGrid",
       type: t.NonNull(t.Boolean),
     }),
     t.field({

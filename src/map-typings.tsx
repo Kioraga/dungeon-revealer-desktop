@@ -1,4 +1,7 @@
+export type GridType = "square" | "hex";
+
 export type MapGridEntity = {
+  type: GridType;
   color: string;
   offsetX: number;
   offsetY: number;

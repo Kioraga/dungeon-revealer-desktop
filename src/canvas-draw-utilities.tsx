@@ -74,6 +74,30 @@ export const applyFogRectangle = (
   context.fill();
 };
 
+/**
+ * Reveal/shroud an arbitrary set of polygons (one fill call, so a whole hex
+ * region costs about the same as one rectangle).
+ */
+export const applyFogPolygons = (
+  fogMode: FogMode,
+  polygons: Array<Array<Vector2D>>,
+  context: CanvasRenderingContext2D
+) => {
+  if (polygons.length === 0) {
+    return;
+  }
+  setCompositeMode(fogMode, context);
+  context.beginPath();
+  for (const points of polygons) {
+    context.moveTo(points[0][0], points[0][1]);
+    for (let i = 1; i < points.length; i++) {
+      context.lineTo(points[i][0], points[i][1]);
+    }
+    context.closePath();
+  }
+  context.fill();
+};
+
 export const midBetweenPoints = (
   point1: Vector2D,
   point2: Vector2D

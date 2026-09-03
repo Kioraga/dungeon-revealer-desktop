@@ -313,15 +313,25 @@ type Map {
   grid: MapGrid
   showGrid: Boolean!
   showGridToPlayers: Boolean!
+  snapTokensToGrid: Boolean!
   tokens: [MapToken!]!
 }
 
 type MapGrid {
+  type: GridType!
   color: String!
   offsetX: Float!
   offsetY: Float!
   columnWidth: Float!
   columnHeight: Float!
+}
+
+"""
+The shape of the cells of the grid.
+"""
+enum GridType {
+  square
+  hex
 }
 
 """
@@ -696,9 +706,11 @@ input MapUpdateGridInput {
   grid: GridInput!
   showGrid: Boolean!
   showGridToPlayers: Boolean!
+  snapTokensToGrid: Boolean!
 }
 
 input GridInput {
+  type: GridType!
   color: String!
   offsetX: Float!
   offsetY: Float!

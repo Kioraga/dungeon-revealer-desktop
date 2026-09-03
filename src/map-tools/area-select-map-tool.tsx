@@ -6,10 +6,16 @@ import * as io from "io-ts";
 import { pipe, identity } from "fp-ts/lib/function";
 import * as E from "fp-ts/lib/Either";
 import { ThreeLine, ThreeLine2 } from "../three-line";
-import { applyFogRectangle } from "../canvas-draw-utilities";
-import type { MapTool } from "./map-tool";
+import { applyFogPolygons, applyFogRectangle } from "../canvas-draw-utilities";
+import type { MapTool, SharedMapToolState } from "./map-tool";
 import { BrushToolContext } from "./brush-map-tool";
 import { ConfigureGridMapToolContext } from "./configure-grid-map-tool";
+import {
+  axialRectBetween,
+  axialToPoint,
+  hexagonPoints,
+  nearestCell,
+} from "../hex-grid";
 import {
   PersistedStateModel,
   usePersistedState,
@@ -91,6 +97,79 @@ export const RectanglePlane = (props: {
         opacity={0.5}
       />
     </animated.mesh>
+  );
+};
+
+/**
+ * Preview of the hex region between two cells while dragging with
+ * "Snap to grid". Same cell set that applyFogPolygons will fill, so the
+ * preview always matches the reveal result.
+ * ponytail: caps the cell count (single line buffer would still draw it, but
+ * the region becomes illegible anyway) — upgrade to a hull outline if a huge
+ * hex drag should stay readable.
+ */
+const HexRegionPreview = (props: {
+  p1: SpringValue<[number, number, number]>;
+  p2: SpringValue<[number, number, number]>;
+  origin: [number, number];
+  size: number;
+  mapContext: SharedMapToolState;
+  color: string;
+}): React.ReactElement => {
+  const ref = React.useRef<null | ThreeLine2>(null);
+
+  const getPoints = React.useCallback<
+    () => Array<[number, number, number]>
+  >(() => {
+    const { helper } = props.mapContext;
+    const toImage = (p: [number, number, number]): [number, number] =>
+      helper.coordinates.canvasToImage(
+        helper.coordinates.threeToCanvas([p[0], p[1]])
+      );
+    const a = nearestCell(toImage(props.p1.get()), props.origin, props.size);
+    const b = nearestCell(toImage(props.p2.get()), props.origin, props.size);
+    const rect = axialRectBetween(a, b);
+    const width = rect.qMax - rect.qMin + 1;
+    const height = rect.rMax - rect.rMin + 1;
+    if (width * height > 4000) {
+      return [];
+    }
+    const points: Array<[number, number, number]> = [];
+    for (let q = rect.qMin; q <= rect.qMax; q++) {
+      for (let r = rect.rMin; r <= rect.rMax; r++) {
+        const center = axialToPoint({ q, r }, props.origin, props.size);
+        const corners = hexagonPoints(center, props.size).map((corner) =>
+          helper.imageCoordinatesToThreePoint(corner)
+        );
+        for (const corner of corners) {
+          points.push([corner[0], corner[1], 0]);
+        }
+        points.push([corners[0][0], corners[0][1], 0]);
+      }
+    }
+    return points;
+  }, [props.mapContext, props.origin, props.size, props.p1, props.p2]);
+
+  const initialPoints = React.useMemo<Array<[number, number, number]>>(
+    getPoints,
+    // The springs mutate over time; only the identity matters here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [props.mapContext, props.origin, props.size, props.p1, props.p2]
+  );
+
+  useFrame(() => {
+    if (ref.current) {
+      ref.current.geometry.setPositions(getPoints().flat());
+    }
+  });
+
+  return (
+    <ThreeLine
+      points={initialPoints}
+      color={props.color}
+      ref={ref}
+      transparent
+    />
   );
 };
 
@@ -184,6 +263,40 @@ export const AreaSelectMapTool: MapTool = {
       [gridContext.state]
     );
 
+    // Hex math runs in image-pixel space (grid values are stored in image px),
+    // then points are converted to the fog-canvas / three domains.
+    const isHexGrid = gridContext.state.type === "hex";
+    const hexOrigin = React.useMemo<[number, number]>(
+      () => [gridContext.state.offsetX, gridContext.state.offsetY],
+      [gridContext.state.offsetX, gridContext.state.offsetY]
+    );
+    const hexSize = gridContext.state.columnWidth;
+
+    const worldToImagePoint = (p: [number, number]): [number, number] => {
+      const canvas = props.mapContext.helper.coordinates.threeToCanvas(p);
+      return props.mapContext.helper.coordinates.canvasToImage(canvas);
+    };
+
+    const hexRegionPolygons = (
+      p1: [number, number],
+      p2: [number, number]
+    ): Array<Array<[number, number]>> => {
+      const a = nearestCell(worldToImagePoint(p1), hexOrigin, hexSize);
+      const b = nearestCell(worldToImagePoint(p2), hexOrigin, hexSize);
+      const { qMin, qMax, rMin, rMax } = axialRectBetween(a, b);
+      const sizeInCanvas = hexSize * props.mapContext.ratio;
+      const polygons: Array<Array<[number, number]>> = [];
+      for (let q = qMin; q <= qMax; q++) {
+        for (let r = rMin; r <= rMax; r++) {
+          const center = axialToPoint({ q, r }, hexOrigin, hexSize);
+          const canvasCenter =
+            props.mapContext.helper.vector.imageToCanvas(center);
+          polygons.push(hexagonPoints(canvasCenter, sizeInCanvas));
+        }
+      }
+      return polygons;
+    };
+
     const fadeWidth = 0.05;
 
     useGesture<{ onKeyDown: KeyboardEvent }>(
@@ -255,20 +368,47 @@ export const AreaSelectMapTool: MapTool = {
         }
         if (localState.lastPointerPosition) {
           const fogCanvasContext = props.mapContext.fogCanvas.getContext("2d")!;
-          let p1 = props.mapContext.pointerPosition.get();
-          let p2 = localState.lastPointerPosition.get();
+          const p1 = props.mapContext.pointerPosition.get();
+          const p2 = localState.lastPointerPosition.get();
 
-          if (areaSelectContext.state.snapToGrid === true) {
-            p1 = [getSnappedX(p1[0]), getSnappedY(p1[1]), 1];
-            p2 = [getSnappedX(p2[0]), getSnappedY(p2[1]), 1];
+          if (areaSelectContext.state.snapToGrid === true && isHexGrid) {
+            applyFogPolygons(
+              brushContext.state.fogMode,
+              hexRegionPolygons([p1[0], p1[1]], [p2[0], p2[1]]),
+              fogCanvasContext
+            );
+          } else if (areaSelectContext.state.snapToGrid === true) {
+            const snappedP1 = [getSnappedX(p1[0]), getSnappedY(p1[1]), 1] as [
+              number,
+              number,
+              number
+            ];
+            const snappedP2 = [getSnappedX(p2[0]), getSnappedY(p2[1]), 1] as [
+              number,
+              number,
+              number
+            ];
+
+            applyFogRectangle(
+              brushContext.state.fogMode,
+              props.mapContext.helper.coordinates.threeToCanvas([
+                snappedP1[0],
+                snappedP1[1],
+              ]),
+              props.mapContext.helper.coordinates.threeToCanvas([
+                snappedP2[0],
+                snappedP2[1],
+              ]),
+              fogCanvasContext
+            );
+          } else {
+            applyFogRectangle(
+              brushContext.state.fogMode,
+              props.mapContext.helper.coordinates.threeToCanvas([p1[0], p1[1]]),
+              props.mapContext.helper.coordinates.threeToCanvas([p2[0], p2[1]]),
+              fogCanvasContext
+            );
           }
-
-          applyFogRectangle(
-            brushContext.state.fogMode,
-            props.mapContext.helper.coordinates.threeToCanvas([p1[0], p1[1]]),
-            props.mapContext.helper.coordinates.threeToCanvas([p2[0], p2[1]]),
-            fogCanvasContext
-          );
           props.mapContext.fogTexture.needsUpdate = true;
           brushContext.handlers.onDrawEnd(props.mapContext.fogCanvas);
         }
@@ -303,7 +443,7 @@ export const AreaSelectMapTool: MapTool = {
     if (localState.lastPointerPosition) {
       return (
         <>
-          {areaSelectContext.state.snapToGrid ? (
+          {areaSelectContext.state.snapToGrid && !isHexGrid ? (
             <RectanglePlane
               p1={localState.lastPointerPosition.to((x, y, z) => [
                 getSnappedX(x),
@@ -315,6 +455,16 @@ export const AreaSelectMapTool: MapTool = {
                 getSnappedY(y),
                 z,
               ])}
+              color="aqua"
+            />
+          ) : null}
+          {areaSelectContext.state.snapToGrid && isHexGrid ? (
+            <HexRegionPreview
+              p1={localState.lastPointerPosition}
+              p2={props.mapContext.pointerPosition}
+              origin={hexOrigin}
+              size={hexSize}
+              mapContext={props.mapContext}
               color="aqua"
             />
           ) : null}

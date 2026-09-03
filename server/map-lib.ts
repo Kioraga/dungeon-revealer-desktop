@@ -273,6 +273,7 @@ export const mapUpdateGrid = (params: {
   grid: MapGridEntity | null;
   showGrid: boolean;
   showGridToPlayers: boolean;
+  snapTokensToGrid: boolean;
 }) =>
   pipe(
     auth.requireAdmin(),
@@ -283,6 +284,7 @@ export const mapUpdateGrid = (params: {
           grid: params.grid ? params.grid : null,
           showGrid: params.showGrid,
           showGridToPlayers: params.showGridToPlayers,
+          snapTokensToGrid: params.snapTokensToGrid,
         })
     ),
     RT.chainW((map) =>

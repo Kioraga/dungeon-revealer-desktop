@@ -10,6 +10,8 @@ import {
   usePersistedState,
 } from "../hooks/use-persisted-state";
 import { usePinchWheelZoom } from "./drag-pan-zoom-map-tool";
+import { ConfigureGridMapToolContext } from "./configure-grid-map-tool";
+import { snapPointToCellCenter } from "../hex-grid";
 import { MapTool } from "./map-tool";
 import { tokenMarkerMapToolMapTokeMapTokenAddManyMutation } from "./__generated__/tokenMarkerMapToolMapTokeMapTokenAddManyMutation.graphql";
 
@@ -111,6 +113,7 @@ export const TokenMarkerMapTool: MapTool = {
   Component: (props) => {
     usePinchWheelZoom(props.mapContext);
     const tokenMarkerContext = React.useContext(TokenMarkerContext);
+    const configureGridContext = React.useContext(ConfigureGridMapToolContext);
 
     const [addToken] =
       useMutation<tokenMarkerMapToolMapTokeMapTokenAddManyMutation>(
@@ -143,6 +146,19 @@ export const TokenMarkerMapTool: MapTool = {
             point.y,
           ]);
 
+          let [tokenX, tokenY] = [x, y];
+          if (configureGridContext.state.snapTokensToGrid) {
+            const [sx, sy] = snapPointToCellCenter([x, y], {
+              type: configureGridContext.state.type,
+              offsetX: configureGridContext.state.offsetX,
+              offsetY: configureGridContext.state.offsetY,
+              columnWidth: configureGridContext.state.columnWidth,
+              columnHeight: configureGridContext.state.columnHeight,
+            });
+            tokenX = sx;
+            tokenY = sy;
+          }
+
           let label = "";
 
           if (tokenMarkerContext.state.includeTokenText) {
@@ -170,8 +186,8 @@ export const TokenMarkerMapTool: MapTool = {
                         ? tokenMarkerContext.state.tokenLabelColor
                         : null,
                     radius: tokenMarkerContext.state.tokenRadius.get(),
-                    x,
-                    y,
+                    x: tokenX,
+                    y: tokenY,
                     label: label.trim(),
                   },
                 ],

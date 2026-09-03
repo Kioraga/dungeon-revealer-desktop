@@ -25,7 +25,7 @@ import type {
   SharedMapToolState,
 } from "./map-tools/map-tool";
 import { useContextBridge } from "./hooks/use-context-bridge";
-import { MapGridEntity, MapTokenEntity } from "./map-typings";
+import { MapTokenEntity } from "./map-typings";
 import { useIsKeyPressed } from "./hooks/use-is-key-pressed";
 import { TextureLoader } from "three";
 import { ReactEventHandlers } from "react-use-gesture/dist/types";
@@ -35,6 +35,8 @@ import { levaPluginNoteReference } from "./leva-plugin/leva-plugin-note-referenc
 import { levaPluginTokenImage } from "./leva-plugin/leva-plugin-token-image";
 import { useI18n } from "./i18n";
 import { useMarkArea } from "./map-tools/player-map-tool";
+import { drawGridToContext } from "./grid-draw";
+import { snapPointToCellCenter } from "./hex-grid";
 import { ContextMenuState, useShowContextMenu } from "./map-context-menu";
 import {
   useClearTokenSelection,
@@ -154,8 +156,13 @@ const TokenListRendererFragment = graphql`
       isVisibleForPlayers
       ...mapView_TokenRendererMapTokenFragment
     }
+    snapTokensToGrid
     grid {
+      type
+      offsetX
+      offsetY
       columnWidth
+      columnHeight
     }
   }
 `;
@@ -178,6 +185,8 @@ const TokenListRenderer = (props: {
           key={token.id}
           token={token}
           columnWidth={map.grid?.columnWidth ?? null}
+          grid={map.grid}
+          snapTokensToGrid={map.snapTokensToGrid}
         />
       ))}
     </group>
@@ -210,6 +219,14 @@ const TokenRenderer = (props: {
   id: string;
   token: mapView_TokenRendererMapTokenFragment$key;
   columnWidth: number | null;
+  grid: null | {
+    type: string;
+    offsetX: number;
+    offsetY: number;
+    columnWidth: number;
+    columnHeight: number;
+  };
+  snapTokensToGrid: boolean;
 }) => {
   const { t } = useI18n();
   const token = useFragment(TokenRendererMapTokenFragment, props.token);
@@ -633,9 +650,17 @@ const TokenRenderer = (props: {
         const newY =
           memo[1] - movement[1] / sharedMapState.viewport.factor / mapScale[1];
 
-        const [x, y] = sharedMapState.helper.coordinates.canvasToImage(
+        let [x, y] = sharedMapState.helper.coordinates.canvasToImage(
           sharedMapState.helper.coordinates.threeToCanvas([newX, newY])
         );
+
+        // DM-only: snap the dragged token to the center of the grid cell it
+        // is over. Player views keep free movement.
+        if (isDungeonMaster && props.snapTokensToGrid && props.grid) {
+          const snapped = snapPointToCellCenter([x, y], props.grid);
+          x = snapped[0];
+          y = snapped[1];
+        }
 
         setValues({
           position: [x, y],
@@ -1061,51 +1086,9 @@ const MarkedAreaRenderer: React.FC<{
   );
 };
 
-const reduceOffsetToMinimum = (offset: number, sideLength: number): number => {
-  const newOffset = offset - sideLength;
-  if (newOffset > 0) {
-    return reduceOffsetToMinimum(newOffset, sideLength);
-  }
-  return offset;
-};
-
-const drawGridToContext = (
-  grid: MapGridEntity,
-  ratio: number,
-  canvas: HTMLCanvasElement
-) => {
-  const context = canvas.getContext("2d");
-  if (!context) {
-    console.error("Could not create canvas context.");
-    return;
-  }
-  context.strokeStyle = grid.color || "rgba(0, 0, 0, .5)";
-  context.lineWidth = 2;
-
-  const gridX = grid.offsetX * ratio;
-  const gridY = grid.offsetY * ratio;
-  const sideWidth = grid.columnWidth * ratio;
-  const sideHeight = grid.columnHeight * ratio;
-
-  const offsetX = reduceOffsetToMinimum(gridX, sideWidth);
-  const offsetY = reduceOffsetToMinimum(gridY, sideHeight);
-
-  for (let i = 0; i < canvas.width / sideWidth; i++) {
-    context.beginPath();
-    context.moveTo(offsetX + i * sideWidth, 0);
-    context.lineTo(offsetX + i * sideWidth, canvas.height);
-    context.stroke();
-  }
-  for (let i = 0; i < canvas.height / sideHeight; i++) {
-    context.beginPath();
-    context.moveTo(0, offsetY + i * sideHeight);
-    context.lineTo(canvas.width, offsetY + i * sideHeight);
-    context.stroke();
-  }
-};
-
 const GridRendererFragment = graphql`
   fragment mapView_GridRendererFragment on MapGrid {
+    type
     color
     offsetX
     offsetY

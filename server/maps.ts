@@ -34,7 +34,10 @@ const prepareToken = (token: { [key: string]: unknown }) => {
   return token;
 };
 
+export type GridType = "square" | "hex";
+
 export type MapGridEntity = {
+  type: GridType;
   color: string;
   offsetX: number;
   offsetY: number;
@@ -76,6 +79,7 @@ const prepareGrid = (
   const _columnHeight = grid?.columnHeight ?? grid?.sideLength;
 
   return {
+    type: grid?.type === "hex" ? "hex" : "square",
     color: typeof _gridColor === "string" ? _gridColor : "red",
     offsetX: typeof _offsetX === "number" ? _offsetX : 0,
     offsetY: typeof _offsetY === "number" ? _offsetY : 0,
@@ -92,6 +96,7 @@ type LegacyMapEntity = {
   mapPath: string;
   showGrid?: boolean;
   showGridToPlayers?: boolean;
+  snapTokensToGrid?: boolean;
   gridColor?: string;
   grid?: {
     x: number;
@@ -108,6 +113,7 @@ export type MapEntity = {
   mapPath: string;
   showGrid: boolean;
   showGridToPlayers: boolean;
+  snapTokensToGrid: boolean;
   grid: null | MapGridEntity;
   tokens: Array<any>;
   fogLiveRevision: string;
@@ -163,6 +169,7 @@ export class Maps {
         fogLivePath: rawMap.fogLivePath ?? null,
         showGrid: rawMap.showGrid ?? false,
         showGridToPlayers: rawMap.showGridToPlayers ?? false,
+        snapTokensToGrid: rawMap.snapTokensToGrid ?? false,
         grid: prepareGrid(
           rawMap.grid,
           "gridColor" in rawMap ? rawMap.gridColor : null
@@ -218,6 +225,7 @@ export class Maps {
         grid: null,
         showGrid: false,
         showGridToPlayers: false,
+        snapTokensToGrid: false,
         tokens: [],
         fogProgressRevision: randomUUID(),
         fogLiveRevision: randomUUID(),

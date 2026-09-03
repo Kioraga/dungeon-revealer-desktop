@@ -122,6 +122,9 @@ export const es: Record<string, string> = {
   "Brush Shape": "Forma del pincel",
   Square: "Cuadrado",
   Circle: "Círculo",
+  Hex: "Hexágono",
+  "Grid Type": "Tipo de cuadrícula",
+  "Hex Size (center to corner)": "Tamaño del hexágono (centro a esquina)",
   "Snap to Grid": "Ajustar a la cuadrícula",
   Size: "Tamaño",
   Color: "Color",
@@ -142,6 +145,7 @@ export const es: Record<string, string> = {
   "Grid Settings": "Ajustes de cuadrícula",
   "Show Grid": "Mostrar cuadrícula",
   "Show Grid to players": "Mostrar cuadrícula a los jugadores",
+  "Snap Tokens to Grid": "Ajustar tokens a la cuadrícula",
   "Configure Grid": "Configurar cuadrícula",
   "This map currently has no grid data. Do you wanna add a new grid using the grid configurator?":
     "Este mapa no tiene datos de cuadrícula. ¿Quieres añadir una nueva cuadrícula con el configurador de cuadrícula?",

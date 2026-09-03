@@ -1,10 +1,15 @@
 import * as React from "react";
+import * as THREE from "three";
 import { usePinchWheelZoom } from "./drag-pan-zoom-map-tool";
-import type { MapTool } from "./map-tool";
+import type { MapTool, SharedMapToolState } from "./map-tool";
 import { ThreeLine } from "../three-line";
 import { Rectangle } from "./area-select-map-tool";
+import { drawGridToContext } from "../grid-draw";
+import type { GridType } from "../map-typings";
 
 export type ConfigureMapToolState = {
+  type: GridType;
+  snapTokensToGrid: boolean;
   offsetY: number;
   offsetX: number;
   columnWidth: number;
@@ -18,6 +23,64 @@ type ConfigureGridMapToolContextValue = {
 
 export const ConfigureGridMapToolContext =
   React.createContext<ConfigureGridMapToolContextValue>(undefined as any);
+
+const HexGridOverlay = (props: {
+  mapContext: SharedMapToolState;
+  state: ConfigureMapToolState;
+}): React.ReactElement => {
+  const [canvas] = React.useState(() =>
+    window.document.createElement("canvas")
+  );
+  const [texture] = React.useState(() => new THREE.CanvasTexture(canvas));
+
+  React.useEffect(() => {
+    canvas.width = props.mapContext.mapCanvas.width;
+    canvas.height = props.mapContext.mapCanvas.height;
+    const context = canvas.getContext("2d");
+    if (!context) {
+      return;
+    }
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    drawGridToContext(
+      {
+        type: "hex",
+        color: "red",
+        offsetX: props.state.offsetX,
+        offsetY: props.state.offsetY,
+        columnWidth: props.state.columnWidth,
+        columnHeight: props.state.columnHeight,
+      },
+      props.mapContext.ratio,
+      canvas
+    );
+    texture.needsUpdate = true;
+  }, [
+    canvas,
+    texture,
+    props.state.offsetX,
+    props.state.offsetY,
+    props.state.columnWidth,
+    props.mapContext,
+  ]);
+
+  return (
+    <mesh position={[0, 0, 0.1]}>
+      <planeBufferGeometry
+        attach="geometry"
+        args={[
+          props.mapContext.dimensions.width,
+          props.mapContext.dimensions.height,
+        ]}
+      />
+      <meshBasicMaterial
+        attach="material"
+        map={texture}
+        transparent={true}
+        depthTest={false}
+      />
+    </mesh>
+  );
+};
 
 export const ConfigureGridMapTool: MapTool = {
   id: "configure-grid-map-tool",
@@ -64,6 +127,15 @@ export const ConfigureGridMapTool: MapTool = {
           configureGridContext.state.columnHeight,
         ])
       );
+
+    if (configureGridContext.state.type === "hex") {
+      return (
+        <HexGridOverlay
+          mapContext={props.mapContext}
+          state={configureGridContext.state}
+        />
+      );
+    }
 
     return (
       <>

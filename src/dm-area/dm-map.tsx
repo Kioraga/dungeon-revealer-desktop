@@ -14,6 +14,7 @@ import {
   Text,
   InputGroup,
   Stack,
+  Select,
   NumberInput,
   NumberInputField,
   NumberInputStepper,
@@ -242,11 +243,13 @@ const ShowGridSettingsPopupMapFragment = graphql`
     id
     showGrid
     showGridToPlayers
+    snapTokensToGrid
   }
 `;
 
 const ShowGridSettingsPopupGridFragment = graphql`
   fragment dmMap_ShowGridSettingsPopupGridFragment on MapGrid {
+    type
     offsetX
     offsetY
     columnWidth
@@ -282,6 +285,10 @@ const ShowGridSettingsPopup = React.memo(
       map.showGridToPlayers,
       []
     );
+    const [snapTokensToGrid, setSnapTokensToGrid] = useResetState(
+      map.snapTokensToGrid,
+      []
+    );
 
     const syncState = useDebounceCallback(() => {
       mapUpdateGrid({
@@ -294,6 +301,7 @@ const ShowGridSettingsPopup = React.memo(
             },
             showGrid,
             showGridToPlayers,
+            snapTokensToGrid,
           },
         },
       });
@@ -345,6 +353,24 @@ const ShowGridSettingsPopup = React.memo(
               isChecked={showGridToPlayers}
               onChange={(ev) => {
                 setShowGridToPlayers(ev.target.checked);
+                syncState();
+              }}
+            />
+          </FormControl>
+          <FormControl
+            display="flex"
+            alignItems="center"
+            justifyContent="space-between"
+          >
+            <FormLabel htmlFor="snap-tokens-toggle">
+              {t("Snap Tokens to Grid")}
+            </FormLabel>
+            <Switch
+              id="snap-tokens-toggle"
+              size="lg"
+              isChecked={snapTokensToGrid}
+              onChange={(ev) => {
+                setSnapTokensToGrid(ev.target.checked);
                 syncState();
               }}
             />
@@ -613,7 +639,9 @@ const MapPingMutation = graphql`
 export const DMMapFragment = graphql`
   fragment dmMap_DMMapFragment on Map {
     id
+    snapTokensToGrid
     grid {
+      type
       offsetX
       offsetY
       columnWidth
@@ -774,12 +802,14 @@ export const DmMap = (props: {
   const [configureGridMapToolState, setConfigureGridMapToolState] =
     useResetState<ConfigureMapToolState>(
       () => ({
+        type: (map.grid?.type ?? "square") as ConfigureMapToolState["type"],
+        snapTokensToGrid: map.snapTokensToGrid,
         offsetX: map.grid?.offsetX ?? 0,
         offsetY: map.grid?.offsetY ?? 0,
         columnWidth: map.grid?.columnWidth ?? 50,
         columnHeight: map.grid?.columnHeight ?? 50,
       }),
-      [map.grid]
+      [map.grid, map.snapTokensToGrid]
     );
 
   return (
@@ -1263,6 +1293,7 @@ const GridConfigurator_MapFragment = graphql`
     id
     showGrid
     showGridToPlayers
+    snapTokensToGrid
   }
 `;
 
@@ -1295,6 +1326,20 @@ const GridConfigurator = (props: {
       <Text>
         {t("Press and hold Alt for dragging the grid with your mouse.")}
       </Text>
+      <FormControl>
+        <FormLabel>{t("Grid Type")}</FormLabel>
+        <Select
+          size="sm"
+          value={state.type}
+          onChange={(ev) => {
+            const type = ev.target.value === "hex" ? "hex" : "square";
+            setState((state) => ({ ...state, type }));
+          }}
+        >
+          <option value="square">{t("Square")}</option>
+          <option value="hex">{t("Hex")}</option>
+        </Select>
+      </FormControl>
       <HStack>
         <FormControl>
           <FormLabel>{t("X-Coordinate")}</FormLabel>
@@ -1347,7 +1392,11 @@ const GridConfigurator = (props: {
       </HStack>
       <HStack>
         <FormControl>
-          <FormLabel>{t("Column Width")}</FormLabel>
+          <FormLabel>
+            {state.type === "hex"
+              ? t("Hex Size (center to corner)")
+              : t("Column Width")}
+          </FormLabel>
           <InputGroup size="sm">
             <NumberInput
               value={state.columnWidth}
@@ -1370,30 +1419,32 @@ const GridConfigurator = (props: {
             </NumberInput>
           </InputGroup>
         </FormControl>
-        <FormControl>
-          <FormLabel>{t("Column Height")}</FormLabel>
-          <InputGroup size="sm">
-            <NumberInput
-              value={state.columnHeight}
-              onChange={(valueString) => {
-                let columnHeight = parseFloat(valueString);
-                if (Number.isNaN(columnHeight)) {
-                  columnHeight = 0;
-                }
-                setState((state) => ({
-                  ...state,
-                  columnHeight,
-                }));
-              }}
-            >
-              <NumberInputField />
-              <NumberInputStepper>
-                <NumberIncrementStepper />
-                <NumberDecrementStepper />
-              </NumberInputStepper>
-            </NumberInput>
-          </InputGroup>
-        </FormControl>
+        {state.type === "hex" ? null : (
+          <FormControl>
+            <FormLabel>{t("Column Height")}</FormLabel>
+            <InputGroup size="sm">
+              <NumberInput
+                value={state.columnHeight}
+                onChange={(valueString) => {
+                  let columnHeight = parseFloat(valueString);
+                  if (Number.isNaN(columnHeight)) {
+                    columnHeight = 0;
+                  }
+                  setState((state) => ({
+                    ...state,
+                    columnHeight,
+                  }));
+                }}
+              >
+                <NumberInputField />
+                <NumberInputStepper>
+                  <NumberIncrementStepper />
+                  <NumberDecrementStepper />
+                </NumberInputStepper>
+              </NumberInput>
+            </InputGroup>
+          </FormControl>
+        )}
       </HStack>
 
       <div
@@ -1418,6 +1469,7 @@ const GridConfigurator = (props: {
                   input: {
                     mapId: map.id,
                     grid: {
+                      type: state.type,
                       color: "rgba(0, 0, 0, 0.08)",
                       columnWidth: state.columnWidth,
                       columnHeight: state.columnHeight,
@@ -1426,6 +1478,7 @@ const GridConfigurator = (props: {
                     },
                     showGrid: map.showGrid,
                     showGridToPlayers: map.showGridToPlayers,
+                    snapTokensToGrid: map.snapTokensToGrid,
                   },
                 },
               }).finally(() => {
