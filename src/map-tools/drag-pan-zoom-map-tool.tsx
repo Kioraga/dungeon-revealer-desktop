@@ -2,6 +2,18 @@ import * as React from "react";
 import { useGesture } from "react-use-gesture";
 import type { MapTool, SharedMapToolState } from "./map-tool";
 
+// True when the event target belongs to the given canvas's map surface (the
+// container holds the WebGL canvas plus any floating overlays such as the
+// player-viewport rectangle), so document-level gestures (wheel zoom, middle
+// pan) keep working over them and never react to the hidden twin view.
+export const isInsideMapSurface = (
+  canvas: HTMLCanvasElement,
+  target: EventTarget | null
+) =>
+  target === canvas ||
+  (target instanceof Element &&
+    canvas.closest("[data-map-surface]")?.contains(target));
+
 export const usePinchWheelZoom = (mapToolState: SharedMapToolState) => {
   const updateZoom = ({
     pinchDelta,
@@ -55,16 +67,10 @@ export const usePinchWheelZoom = (mapToolState: SharedMapToolState) => {
   // Treat anything inside the map surface (the mirror container holds both the
   // canvas and the rectangle) as the map surface so zoom keeps working there.
   // Scoping to the surface keeps the hidden DM view's tool from reacting.
-  const isMapSurface = (event: { target: EventTarget | null }) =>
-    event.target === mapToolState.canvas ||
-    (event.target instanceof Element &&
-      mapToolState.canvas
-        .closest("[data-map-surface]")
-        ?.contains(event.target));
   useGesture(
     {
       onWheel: ({ event }) => {
-        if (!isMapSurface(event)) {
+        if (!isInsideMapSurface(mapToolState.canvas, event.target)) {
           return;
         }
         event.preventDefault();
@@ -77,7 +83,7 @@ export const usePinchWheelZoom = (mapToolState: SharedMapToolState) => {
         updateZoom({ pinchDelta, pinchScale, origin });
       },
       onPinch: ({ movement, event, origin, last, cancel }) => {
-        if (!isMapSurface(event)) {
+        if (!isInsideMapSurface(mapToolState.canvas, event.target)) {
           return;
         }
         event.preventDefault();

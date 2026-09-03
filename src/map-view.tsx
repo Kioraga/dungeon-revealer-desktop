@@ -41,6 +41,7 @@ import {
   useTokenSelection,
 } from "./shared-token-state";
 import { useResetState } from "./hooks/use-reset-state";
+import { isInsideMapSurface } from "./map-tools/drag-pan-zoom-map-tool";
 import { mapView_MapFragment$key } from "./__generated__/mapView_MapFragment.graphql";
 import { mapView_TokenRendererMapTokenFragment$key } from "./__generated__/mapView_TokenRendererMapTokenFragment.graphql";
 import { mapView_TokenListRendererFragment$key } from "./__generated__/mapView_TokenListRendererFragment.graphql";
@@ -1589,6 +1590,63 @@ const MapViewRenderer = (props: {
     };
   });
 
+  // Middle-button drag pans the map no matter which tool is active, matching
+  // the wheel zoom: both are window-level gestures scoped to this view's map
+  // surface, so they keep working over the player-viewport rectangle and never
+  // react to the hidden twin view. Excluded when no tool is mounted (the
+  // read-only player window keeps its camera DM-driven).
+  const middlePanRef = React.useRef<null | {
+    clientX: number;
+    clientY: number;
+    posX: number;
+    posY: number;
+  }>(null);
+  React.useEffect(() => {
+    if (!props.activeTool) return;
+    const canvas = gl.domElement;
+    const onPointerDown = (ev: globalThis.PointerEvent) => {
+      if (ev.button !== 1) return;
+      if (!isInsideMapSurface(canvas, ev.target)) return;
+      ev.preventDefault();
+      const [posX, posY] = spring.position.get();
+      middlePanRef.current = {
+        clientX: ev.clientX,
+        clientY: ev.clientY,
+        posX,
+        posY,
+      };
+    };
+    const onPointerMove = (ev: globalThis.PointerEvent) => {
+      const pan = middlePanRef.current;
+      if (!pan) return;
+      const factor = viewport.factor;
+      set({
+        position: [
+          pan.posX + (ev.clientX - pan.clientX) / factor,
+          pan.posY - (ev.clientY - pan.clientY) / factor,
+          0,
+        ],
+        immediate: true,
+      });
+    };
+    const onPointerEnd = () => {
+      middlePanRef.current = null;
+    };
+    // Capture phase: set the pan flag before react-three-fiber dispatches the
+    // event to the active tool, so a middle drag only pans and never triggers
+    // the tool (R3F forwards pointer events for any button).
+    window.addEventListener("pointerdown", onPointerDown, true);
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerEnd);
+    window.addEventListener("pointercancel", onPointerEnd);
+    return () => {
+      window.removeEventListener("pointerdown", onPointerDown, true);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerEnd);
+      window.removeEventListener("pointercancel", onPointerEnd);
+    };
+  }, [props.activeTool, gl, spring, set, viewport]);
+
   const toolRef = React.useRef<{
     contextState: any;
     localState: any;
@@ -1605,11 +1663,16 @@ const MapViewRenderer = (props: {
     onKeyDown: KeyboardEvent;
   }>({
     onPointerDown: (args) => {
+      if (middlePanRef.current) return;
       clearTokenSelection();
       toolRef.current?.handlers?.onPointerDown?.(args);
     },
-    onPointerUp: (args) => toolRef.current?.handlers?.onPointerUp?.(args),
+    onPointerUp: (args) => {
+      if (middlePanRef.current) return;
+      toolRef.current?.handlers?.onPointerUp?.(args);
+    },
     onPointerMove: (args) => {
+      if (middlePanRef.current) return;
       const position = toolContext.mapState.position.get();
       const scale = toolContext.mapState.scale.get();
 
@@ -1622,6 +1685,7 @@ const MapViewRenderer = (props: {
       return toolRef.current?.handlers?.onPointerMove?.(args);
     },
     onDrag: (args) => {
+      if (middlePanRef.current) return;
       if (isDragAllowed.current === false) {
         return;
       }

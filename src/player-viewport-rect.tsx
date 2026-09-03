@@ -110,6 +110,13 @@ export const PlayerViewportRect = ({
 
   const onPointerDown =
     (mode: "pan" | "resize") => (ev: React.PointerEvent) => {
+      if (ev.button === 1) {
+        // Middle button: let the map's window-level middle-pan handle it (same
+        // as the wheel). Without stopPropagation/preventDefault the event
+        // bubbles to the map surface handler, which pan the mirror instead of
+        // moving this rectangle.
+        return;
+      }
       ev.stopPropagation();
       ev.preventDefault();
       const ctx = controlRef.current?.getContext();
