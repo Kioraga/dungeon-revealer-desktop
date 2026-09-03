@@ -58,16 +58,14 @@ Other actions: **Map Library**, **Media Library**, **Notes** and **Grid settings
 
 ### Shortcuts
 
-| Key                    | Action                                                        |
-| ---------------------- | ------------------------------------------------------------- |
-| `1` – `5`              | Switch tools (1=Move, 2=Brush, 3=Area, 4=Mark, 5=Token)       |
-| `Shift`                | Toggle reveal / hide while using the brush                    |
-| `Alt` (hold)           | Temporarily switch to Move                                    |
-| `Ctrl + S` / `Cmd + S` | Send current fog to players                                   |
-| `Ctrl + Tab`           | Toggle between the GM view and the player preview (DM window) |
-| `Ctrl + Shift + F`     | Search notes                                                  |
-| Middle click (drag)    | Pan the map — works with any tool active                      |
-| Mouse wheel            | Zoom to the cursor — works with any tool active               |
+| Key                                  | Action                                                        |
+| ------------------------------------ | ------------------------------------------------------------- |
+| `1` – `5`                            | Switch tools (1=Move, 2=Brush, 3=Area, 4=Mark, 5=Token)       |
+| `Shift`                              | Toggle reveal / hide while using the brush                    |
+| `Alt` (hold) / `Middle click` (drag) | Temporarily switch to Move                                    |
+| `Ctrl + S` / `Cmd + S`               | Send current fog to players                                   |
+| `Ctrl + Tab`                         | Toggle between the GM view and the player preview (DM window) |
+| `Ctrl + Shift + F`                   | Search notes                                                  |
 
 ## Where your data is saved
 
