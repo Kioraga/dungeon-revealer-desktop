@@ -227,7 +227,7 @@ if (!app.requestSingleInstanceLock()) {
     });
     // Wayland ignores x/y (the compositor places windows), so reposition via
     // KWin scripting after the window is registered.
-    await movePlayerWindowToDisplay(display);
+    await ensurePlayerWindowOnDisplay(display);
   };
 
   const closePlayerWindow = () => {
@@ -267,9 +267,11 @@ if (!app.requestSingleInstanceLock()) {
         "if (out) {",
         "  var wins = workspace.windowList();",
         "  for (var i = 0; i < wins.length; i++) {",
+        // Move every fullscreen window of this pid (normally only the player
+        // one): a window that is still tearing down after a Stop can sit first
+        // in the list and a single-match move would leave the new window behind.
         "    if (wins[i].pid == " + process.pid + " && wins[i].fullScreen) {",
         "      workspace.sendClientToScreen(wins[i], out);",
-        "      break;",
         "    }",
         "  }",
         "}",
@@ -299,6 +301,37 @@ if (!app.requestSingleInstanceLock()) {
       ]);
     } catch {
       // no KWin / no qdbus: fall back to the compositor's default placement
+    }
+  };
+
+  // KWin only moves a window once it is mapped and fullscreen, and a
+  // Stop-then-Start leaves the previous window tearing down on the compositor
+  // — a single one-shot move right after creation races both and can land the
+  // new window on the wrong (active/DM) output. So: wait until the window is
+  // actually fullscreen, then re-issue the (idempotent) move a few times so
+  // one attempt lands after the compositor registers the window. No-op outside
+  // Wayland so X11 keeps using BrowserWindow x/y placement.
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const ensurePlayerWindowOnDisplay = async (display) => {
+    if (!playerWindow || playerWindow.isDestroyed()) return;
+    if (process.platform !== "linux" || !process.env.WAYLAND_DISPLAY) return;
+    const win = playerWindow;
+    const fullscreenDeadline = Date.now() + 4000;
+    while (
+      win === playerWindow &&
+      !win.isDestroyed() &&
+      !win.isFullScreen() &&
+      Date.now() < fullscreenDeadline
+    ) {
+      await sleep(100);
+    }
+    for (
+      let i = 0;
+      win === playerWindow && !win.isDestroyed() && i < 4;
+      i++
+    ) {
+      await movePlayerWindowToDisplay(display);
+      await sleep(250);
     }
   };
 
@@ -382,7 +415,7 @@ if (!app.requestSingleInstanceLock()) {
         const display = await resolveDisplay(displayKey);
         playerWindow.setBounds(display.bounds);
         playerWindow.setFullScreen(true);
-        await movePlayerWindowToDisplay(display);
+        await ensurePlayerWindowOnDisplay(display);
       }
     });
     ipcMain.handle("player-window:close", () => closePlayerWindow());
