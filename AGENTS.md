@@ -64,8 +64,7 @@ js/json/md/html/ts/tsx/graphql).
   (`player-viewport-rect.tsx`) keeps the projector window's shape.
 - **Both DM view and mirror stay mounted** (crossfade via opacity/visibility in
   `dm-area.tsx` `ViewFade`) so each keeps its camera/tool/brush state. No
-  unmount/remount on view switch. Hidden canvas still renders (`ponytail:` on
-  the component names the frameloop upgrade path).
+  unmount/remount on view switch. Hidden canvas still renders.
 - **Token visibility is filtered TWICE**: server-side by socket role
   (`server/graphql/modules/map.ts` `tokens` resolver — admin sees all, user
   sees `isVisibleForPlayers` only) AND client-side in `map-view.tsx`

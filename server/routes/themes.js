@@ -9,7 +9,7 @@ const THEME_ID = /^[A-Za-z0-9_-]+$/;
 
 // Bump when built-in palettes change so shipped updates overwrite the seeded
 // copies. User themes (other filenames) are never touched.
-// ponytail: edits to built-in themes reset on version bump; switch to per-file
+// edits to built-in themes reset on version bump; switch to per-file
 // fingerprints if built-in edits must survive upgrades.
 const THEMES_VERSION = "4";
 

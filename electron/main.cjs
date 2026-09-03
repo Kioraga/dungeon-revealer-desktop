@@ -1,7 +1,7 @@
 // Local desktop wrapper. Boots the existing dungeon-revealer server in-process
 // and opens two windows: the DM window and the fullscreen player window.
-// ponytail: Linux ships as AppImage via electron-builder (see electron-builder.yml, .github/workflows/release-build.yml); win/mac still use electron-packager folders.
-// ponytail: the server listens on an ephemeral 127.0.0.1 port per launch, so no fixed port is exposed and browsers can't reach it. The socket must stay: Electron's renderer talks to the in-process server over HTTP/WebSocket.
+// Linux ships as AppImage via electron-builder (see electron-builder.yml, .github/workflows/release-build.yml); win/mac still use electron-packager folders.
+// the server listens on an ephemeral 127.0.0.1 port per launch, so no fixed port is exposed and browsers can't reach it. The socket must stay: Electron's renderer talks to the in-process server over HTTP/WebSocket.
 const { app, BrowserWindow, ipcMain, screen, Menu, dialog } = require("electron");
 const path = require("path");
 const fs = require("fs");
@@ -19,7 +19,7 @@ if (!app.requestSingleInstanceLock()) {
   let playerWindow = null;
 
   // --- i18n: menu labels + About are localized per current locale. -----------
-  // ponytail: only menu/About live in main (renderer has its own dictionary in
+  // only menu/About live in main (renderer has its own dictionary in
   // src/i18n). Known locales are the ones with a translation; everything else
   // falls back to English per spec. Add a locale here AND in src/i18n.
   const PRODUCT_NAME = "Dungeon Revealer";
@@ -241,7 +241,7 @@ if (!app.requestSingleInstanceLock()) {
   // ignored, so the player window can't target a chosen monitor directly.
   // KDE exposes workspace.sendClientToScreen via KWin scripting (DBus), the
   // only reliable way to move a window to an output under Wayland.
-  // ponytail: KDE-only; other compositors fall back to the active screen.
+  // KDE-only; other compositors fall back to the active screen.
   const movePlayerWindowToDisplay = async (display) => {
     if (!playerWindow || playerWindow.isDestroyed()) return;
     if (process.platform !== "linux" || !process.env.WAYLAND_DISPLAY) return;
@@ -337,7 +337,7 @@ if (!app.requestSingleInstanceLock()) {
 
   // Real monitor names on Wayland: Electron's display.label is empty on Linux.
   // Query wayland-info (xdg_output name + description) and pair by position.
-  // ponytail: Wayland + wayland-info only; X11 and missing binaries fall back
+  // Wayland + wayland-info only; X11 and missing binaries fall back
   // to Display N. Add an xrandr/EDID path if needed elsewhere.
   const getWaylandOutputs = async () => {
     if (!process.env.WAYLAND_DISPLAY) return null;

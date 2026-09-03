@@ -1,7 +1,7 @@
 // Pointy-top hex lattice math, domain-agnostic (2D coordinates with the same
 // linear basis as the caller: canvas px, image px or three-space all work as
 // long as origin + size are expressed in that domain).
-// ponytail: squares degenerate (columnHeight ignored, size = circumradius).
+// squares degenerate (columnHeight ignored, size = circumradius).
 
 export type Axial = { readonly q: number; readonly r: number };
 export type Point2 = [number, number];
@@ -119,7 +119,7 @@ const polygonOverlapsRect = (polygon: Point2[], rect: AxisRect): boolean => {
  * by the two image-space points. Unlike axialRectBetween (which yields the
  * axial parallelogram between two corner cells) this tracks the actual drag
  * rectangle, so the selected region mirrors the visible selection box.
- * ponytail: candidates = axial bounds of the 4 rect corners; every point of
+ * candidates = axial bounds of the 4 rect corners; every point of
  * the rect maps inside those bounds because axial coords are affine, so no
  * intersecting cell is missed.
  */

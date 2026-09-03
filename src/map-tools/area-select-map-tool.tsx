@@ -105,7 +105,7 @@ export const RectanglePlane = (props: {
  * Preview of the hex region between two cells while dragging with
  * "Snap to grid". Same cell set that applyFogPolygons will fill, so the
  * preview always matches the reveal result.
- * ponytail: caps the cell count (single line buffer would still draw it, but
+ * caps the cell count (single line buffer would still draw it, but
  * the region becomes illegible anyway) — upgrade to a hull outline if a huge
  * hex drag should stay readable.
  */

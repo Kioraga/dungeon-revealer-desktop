@@ -150,7 +150,7 @@ const ViewStack = styled.div`
 // white flash). visibility:hidden (delayed until the fade ends) also kills
 // pointer events on the hidden subtree — the DM toolbars use pointer-events:
 // all, so opacity alone would leave invisible buttons clickable.
-// ponytail: hidden R3F canvas keeps rendering; if GPU matters, pause the
+// hidden R3F canvas keeps rendering; if GPU matters, pause the
 // hidden canvas via Canvas `frameloop` (e.g. "never" when opacity is 0).
 const ViewFade = styled.div<{ isActive: boolean }>`
   position: absolute;

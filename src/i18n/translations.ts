@@ -1,5 +1,5 @@
 // Spanish translations, keyed by the English source string (see src/i18n/index.tsx).
-// ponytail: message-keyed dictionary — renaming an English string in the UI
+// message-keyed dictionary — renaming an English string in the UI
 // silently drops its Spanish entry (fallback = the English string, so nothing
 // breaks, it just stays English). Upgrade to explicit keys / react-i18next if
 // the surface outgrows this (plural rules, ICU, external translation files).

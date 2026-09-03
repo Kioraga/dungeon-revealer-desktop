@@ -11,7 +11,7 @@ type I18nContextValue = {
   // t(message, vars): looks up `message` (English source string) in the active
   // locale dictionary; falls back to English when missing. `{var}` placeholders
   // in the (possibly translated) string are replaced with the given vars.
-  // ponytail: no ICU/plural rules; the `{var}` replace covers the one
+  // no ICU/plural rules; the `{var}` replace covers the one
   // parameterized string we have. Add a real pluralization lib when more.
   t: (message: string, vars?: Record<string, string | number>) => string;
 };

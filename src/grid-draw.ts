@@ -109,7 +109,7 @@ export const drawGridToContext = (
   canvas: HTMLCanvasElement
 ) => {
   if (grid.type === "hex") {
-    // ponytail: shared edges stroked twice per hexagon → slightly stronger
+    // shared edges stroked twice per hexagon → slightly stronger
     // alpha on inner seams; acceptable at the usual low grid alpha.
     drawHexGridToContext(grid, ratio, canvas);
     return;

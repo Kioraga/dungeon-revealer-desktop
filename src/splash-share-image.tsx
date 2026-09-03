@@ -39,7 +39,7 @@ export const SplashShareImage = (): React.ReactElement | null => {
   const showToast = useToast();
 
   const url = data.data?.sharedSplashImage?.url ?? null;
-  // ponytail: sniff Content-Type over HEAD instead of adding a mediaType field
+  // sniff Content-Type over HEAD instead of adding a mediaType field
   // to the GraphQL Image type (which would require write-schema + relay).
   // Ceiling: any future media kind needs the same sniff; upgrade to a real
   // mediaType field on Image once more than images/videos exist.
