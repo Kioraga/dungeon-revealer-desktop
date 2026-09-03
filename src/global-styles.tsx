@@ -119,15 +119,26 @@ export const globalStyles = css`
   }
 
   /* Leva checkboxes: visible unchecked, accent when checked (leva's own
-  colors use the surface ramp, so they vanish on dark panels). */
-  .dr-leva-panel input[type="checkbox"] + label {
+  colors use the surface ramp, so they vanish on dark panels). Leva renders
+  two different controls with the same input+label shape: plain booleans
+  (the square box has an svg child) and optional-field toggles (a full-height
+  label whose round dot is its ::after). Color only the visible control:
+  the square for booleans, the ::after dot for optional toggles - never the
+  optional toggle's transparent hit-area rectangle. */
+  .dr-leva-panel input[type="checkbox"]:not(:checked) + label:has(svg) {
     background-color: var(--color-border) !important;
   }
-  .dr-leva-panel input[type="checkbox"]:checked + label {
+  .dr-leva-panel input[type="checkbox"]:checked + label:has(svg) {
     background-color: var(--color-accent) !important;
   }
-  .dr-leva-panel input[type="checkbox"]:checked + label svg {
+  .dr-leva-panel input[type="checkbox"]:checked + label:has(svg) svg {
     stroke: var(--color-accent-contrast) !important;
+  }
+  .dr-leva-panel input[type="checkbox"] + label:not(:has(svg)) {
+    background-color: transparent !important;
+  }
+  .dr-leva-panel input[type="checkbox"]:checked + label:not(:has(svg))::after {
+    background-color: var(--color-accent) !important;
   }
 
   /* Custom scrollbar, themable via --color-scrollbar* */
