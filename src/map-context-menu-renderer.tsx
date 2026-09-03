@@ -91,6 +91,43 @@ export const ContextMenuRenderer = (props: {
       MapContextMenuRendererMapTokenAddManyMutation
     );
 
+  const deleteSelected = React.useCallback(() => {
+    if (selectedItems.size === 0) return;
+    const tokenIds = Array.from(selectedItems.keys());
+    clearSelectedItems();
+    mapTokenDeleteMany({
+      variables: {
+        input: {
+          mapId: map.id,
+          tokenIds,
+        },
+      },
+    });
+  }, [selectedItems, clearSelectedItems, mapTokenDeleteMany, map.id]);
+
+  // Delete key deletes the selected token(s), same action as the context
+  // menu. The menu itself owns Delete while it is open, and typing in an
+  // input must never remove a token.
+  React.useEffect(() => {
+    if (state !== null) {
+      return;
+    }
+    const onKeyDown = (ev: KeyboardEvent) => {
+      if (ev.key !== "Delete") return;
+      const target = ev.target as HTMLElement | null;
+      if (
+        target &&
+        (target.isContentEditable ||
+          /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))
+      ) {
+        return;
+      }
+      deleteSelected();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [state, deleteSelected]);
+
   if (state === null) {
     return null;
   }
@@ -163,17 +200,7 @@ export const ContextMenuRenderer = (props: {
                 Copy tokens ({selectedItems.size})
               </MenuItem>
               <MenuItem
-                onClick={() => {
-                  clearSelectedItems();
-                  mapTokenDeleteMany({
-                    variables: {
-                      input: {
-                        mapId: map.id,
-                        tokenIds: Array.from(selectedItems.keys()),
-                      },
-                    },
-                  });
-                }}
+                onClick={deleteSelected}
                 isDisabled={selectedItems.size == 0}
               >
                 <span style={{ color: "var(--color-danger)" }}>
