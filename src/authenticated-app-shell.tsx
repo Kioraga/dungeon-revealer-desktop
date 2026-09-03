@@ -167,6 +167,22 @@ const AuthenticatedAppShellRenderer: React.FC<{
     return () => window.removeEventListener("keydown", listener);
   }, [isLoggedIn]);
 
+  // Ctrl+Tab toggles the DM window between the GM (editor) and Player
+  // (mirror) views. The player window (map_only) has no views to toggle.
+  React.useEffect(() => {
+    if (isMapOnly) return;
+
+    const listener = (ev: KeyboardEvent) => {
+      if (ev.ctrlKey && !ev.metaKey && !ev.altKey && ev.key === "Tab") {
+        ev.preventDefault();
+        setViewMode((mode) => (mode === "dm" ? "player" : "dm"));
+      }
+    };
+
+    window.addEventListener("keydown", listener);
+    return () => window.removeEventListener("keydown", listener);
+  }, [isMapOnly, setViewMode]);
+
   const chatWidth = useChatWidth();
 
   const chatPosition = useSpring({
