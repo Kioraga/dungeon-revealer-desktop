@@ -4,6 +4,9 @@ Show your tabletop RPG maps to players on a projector or second screen. You cont
 
 Built on top of [dungeon-revealer](https://github.com/dungeon-revealer/dungeon-revealer).
 
+> [!WARNING]
+> Partially **vibe-coded**. Expect weird code, odd workarounds and other slop. It works, but squint at your own risk. Cleanup PRs welcome.
+
 ## How it works
 
 - **DM window** — your control panel. Load a map, cover it with fog, reveal areas with a brush, add tokens and roll dice.
@@ -55,13 +58,16 @@ Other actions: **Map Library**, **Media Library**, **Notes** and **Grid settings
 
 ### Shortcuts
 
-| Key                    | Action                                                  |
-| ---------------------- | ------------------------------------------------------- |
-| `1` – `5`              | Switch tools (1=Move, 2=Brush, 3=Area, 4=Mark, 5=Token) |
-| `Shift`                | Toggle reveal / hide while using the brush              |
-| `Alt` (hold)           | Temporarily switch to Move                              |
-| `Ctrl + S` / `Cmd + S` | Send current fog to players                             |
-| `Ctrl + Shift + F`     | Search notes                                            |
+| Key                    | Action                                                        |
+| ---------------------- | ------------------------------------------------------------- |
+| `1` – `5`              | Switch tools (1=Move, 2=Brush, 3=Area, 4=Mark, 5=Token)       |
+| `Shift`                | Toggle reveal / hide while using the brush                    |
+| `Alt` (hold)           | Temporarily switch to Move                                    |
+| `Ctrl + S` / `Cmd + S` | Send current fog to players                                   |
+| `Ctrl + Tab`           | Toggle between the GM view and the player preview (DM window) |
+| `Ctrl + Shift + F`     | Search notes                                                  |
+| Middle click (drag)    | Pan the map — works with any tool active                      |
+| Mouse wheel            | Zoom to the cursor — works with any tool active               |
 
 ## Where your data is saved
 
