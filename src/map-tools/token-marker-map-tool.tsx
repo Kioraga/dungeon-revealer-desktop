@@ -16,6 +16,7 @@ import { tokenMarkerMapToolMapTokeMapTokenAddManyMutation } from "./__generated_
 const TokenMarkerStateModel = io.type({
   tokenRadius: io.number,
   tokenColor: io.string,
+  tokenLabelColor: io.union([io.string, io.undefined]),
   tokenText: io.string,
   includeTokenText: io.boolean,
   tokenCounter: io.number,
@@ -26,6 +27,7 @@ const TokenMarkerStateModel = io.type({
 type TokenMarkerState = {
   tokenRadius: SpringValue<number>;
   tokenColor: string;
+  tokenLabelColor: string;
   tokenText: string;
   includeTokenText: boolean;
   tokenCounter: number;
@@ -45,6 +47,7 @@ export const TokenMarkerContext = React.createContext<TokenMarkerContextValue>(
 
 const createDefaultTokenMarkerState = (): TokenMarkerState => ({
   tokenColor: "#000000",
+  tokenLabelColor: "#000000",
   tokenRadius: new SpringValue({ from: 100 }),
   tokenText: "",
   includeTokenText: false,
@@ -62,6 +65,7 @@ const tokenMarkerPersistedStateModel: PersistedStateModel<TokenMarkerState> = {
       E.chainW(TokenMarkerStateModel.decode),
       E.map((value) => ({
         ...value,
+        tokenLabelColor: value.tokenLabelColor ?? "#000000",
         tokenRadius: new SpringValue({ from: value.tokenRadius }),
       })),
       E.fold((err) => {
@@ -160,6 +164,11 @@ export const TokenMarkerMapTool: MapTool = {
                 tokens: [
                   {
                     color: tokenMarkerContext.state.tokenColor,
+                    labelColor:
+                      tokenMarkerContext.state.includeTokenText ||
+                      tokenMarkerContext.state.includeTokenCounter
+                        ? tokenMarkerContext.state.tokenLabelColor
+                        : null,
                     radius: tokenMarkerContext.state.tokenRadius.get(),
                     x,
                     y,

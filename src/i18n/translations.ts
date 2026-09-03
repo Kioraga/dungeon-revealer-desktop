@@ -169,7 +169,7 @@ export const es: Record<string, string> = {
   "Token Properties": "Propiedades del token",
   Position: "Posición",
   "Position locked": "Posición bloqueada",
-  "Title Color": "Color del título",
+  "Label Color": "Color de la etiqueta",
   "Visible to players": "Visible para los jugadores",
   "Movable by players": "Movible por los jugadores",
   "Title:": "Título:",

@@ -88,6 +88,7 @@ const GraphQLMapTokenAddManyTokenInput = t.inputObjectType({
     y: t.arg(t.NonNullInput(t.Float)),
     color: t.arg(t.NonNullInput(t.String)),
     label: t.arg(t.NonNullInput(t.String)),
+    labelColor: t.arg(t.String),
     radius: t.arg(t.Float),
     rotation: t.arg(t.Float),
     isVisibleForPlayers: t.arg(t.Boolean),

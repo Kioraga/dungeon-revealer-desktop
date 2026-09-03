@@ -368,7 +368,7 @@ const TokenRenderer = (props: {
       },
       text: {
         type: LevaInputs.STRING,
-        label: t("Title"),
+        label: t("Label"),
         value: typeof token.label === "string" ? token.label : "",
         onChange: (label: string, _, { initial, fromPanel }) => {
           if (initial || !fromPanel) {
@@ -377,19 +377,6 @@ const TokenRenderer = (props: {
           updateToken(props.id, {
             label,
           });
-        },
-        transient: false,
-      },
-      labelColor: {
-        type: LevaInputs.COLOR,
-        label: t("Title Color"),
-        value: token.labelColor ?? "#000000",
-        onChange: (labelColor: string, _, { initial, fromPanel }) => {
-          if (initial || !fromPanel) {
-            return;
-          }
-          pendingChangesRef.current.labelColor = labelColor;
-          enqueueSave();
         },
         transient: false,
       },
@@ -413,6 +400,19 @@ const TokenRenderer = (props: {
           pendingChangesRef.current.color = color;
           enqueueSave();
         },
+      },
+      labelColor: {
+        type: LevaInputs.COLOR,
+        label: t("Label Color"),
+        value: token.labelColor ?? "#000000",
+        onChange: (labelColor: string, _, { initial, fromPanel }) => {
+          if (initial || !fromPanel) {
+            return;
+          }
+          pendingChangesRef.current.labelColor = labelColor;
+          enqueueSave();
+        },
+        transient: false,
       },
       isVisibleForPlayers: {
         type: LevaInputs.BOOLEAN,

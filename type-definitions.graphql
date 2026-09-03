@@ -617,6 +617,7 @@ input MapTokenAddManyTokenInput {
   y: Float!
   color: String!
   label: String!
+  labelColor: String
   radius: Float
   rotation: Float
   isVisibleForPlayers: Boolean

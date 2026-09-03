@@ -461,6 +461,17 @@ const TokenMarkerSettings = (): React.ReactElement => {
           }));
         },
       },
+      tokenLabelColor: {
+        type: LevaInputs.COLOR,
+        label: t("Label Color"),
+        value: tokenMarkerContext.state.tokenLabelColor ?? "#000000",
+        onChange: (tokenLabelColor: string) => {
+          tokenMarkerContext.setState((state) => ({
+            ...state,
+            tokenLabelColor,
+          }));
+        },
+      },
       label: {
         type: LevaInputs.STRING,
         label: t("Label"),
