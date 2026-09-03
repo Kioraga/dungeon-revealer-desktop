@@ -61,6 +61,116 @@ export const axialRectBetween = (a: Axial, b: Axial) => ({
   rMax: Math.max(a.r, b.r),
 });
 
+type AxisRect = { x: number; y: number; width: number; height: number };
+
+const cross = (a: Point2, b: Point2, c: Point2): number =>
+  (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+
+// Convex polygon (CW or CCW), boundary counts as inside.
+const pointInConvexPolygon = (p: Point2, polygon: Point2[]): boolean => {
+  let hasPos = false;
+  let hasNeg = false;
+  for (let i = 0; i < polygon.length; i++) {
+    const c = cross(polygon[i], polygon[(i + 1) % polygon.length], p);
+    if (c > 0) hasPos = true;
+    if (c < 0) hasNeg = true;
+  }
+  return !(hasPos && hasNeg);
+};
+
+// Strict crossing (vertex-on-edge overlaps are caught by the containment
+// tests in polygonOverlapsRect).
+const segmentsCross = (a: Point2, b: Point2, c: Point2, d: Point2): boolean =>
+  cross(a, b, c) * cross(a, b, d) < 0 && cross(c, d, a) * cross(c, d, b) < 0;
+
+const polygonOverlapsRect = (polygon: Point2[], rect: AxisRect): boolean => {
+  const x1 = rect.x;
+  const x2 = rect.x + rect.width;
+  const y1 = rect.y;
+  const y2 = rect.y + rect.height;
+  const inRect = (p: Point2): boolean =>
+    p[0] >= x1 && p[0] <= x2 && p[1] >= y1 && p[1] <= y2;
+  if (polygon.some(inRect)) {
+    return true;
+  }
+  const corners: Point2[] = [
+    [x1, y1],
+    [x2, y1],
+    [x2, y2],
+    [x1, y2],
+  ];
+  if (corners.some((corner) => pointInConvexPolygon(corner, polygon))) {
+    return true;
+  }
+  for (let i = 0; i < polygon.length; i++) {
+    const a = polygon[i];
+    const b = polygon[(i + 1) % polygon.length];
+    for (let j = 0; j < 4; j++) {
+      if (segmentsCross(a, b, corners[j], corners[(j + 1) % 4])) {
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
+/**
+ * All axial cells whose hexagon overlaps the axis-aligned rectangle spanned
+ * by the two image-space points. Unlike axialRectBetween (which yields the
+ * axial parallelogram between two corner cells) this tracks the actual drag
+ * rectangle, so the selected region mirrors the visible selection box.
+ * ponytail: candidates = axial bounds of the 4 rect corners; every point of
+ * the rect maps inside those bounds because axial coords are affine, so no
+ * intersecting cell is missed.
+ */
+export const axialCellsOverlappingRect = (
+  from: Point2,
+  to: Point2,
+  origin: Point2,
+  size: number,
+  maxCells = 4000
+): Axial[] => {
+  const xMin = Math.min(from[0], to[0]);
+  const xMax = Math.max(from[0], to[0]);
+  const yMin = Math.min(from[1], to[1]);
+  const yMax = Math.max(from[1], to[1]);
+  if (xMin === xMax && yMin === yMax) {
+    return [nearestCell(from, origin, size)];
+  }
+  const corners: Point2[] = [
+    [xMin, yMin],
+    [xMax, yMin],
+    [xMax, yMax],
+    [xMin, yMax],
+  ];
+  const cornerCells = corners.map((corner) =>
+    nearestCell(corner, origin, size)
+  );
+  const qMin = Math.min(...cornerCells.map((cell) => cell.q));
+  const qMax = Math.max(...cornerCells.map((cell) => cell.q));
+  const rMin = Math.min(...cornerCells.map((cell) => cell.r));
+  const rMax = Math.max(...cornerCells.map((cell) => cell.r));
+  if ((qMax - qMin + 1) * (rMax - rMin + 1) > maxCells) {
+    return [];
+  }
+  const rect: AxisRect = {
+    x: xMin,
+    y: yMin,
+    width: xMax - xMin,
+    height: yMax - yMin,
+  };
+  const result: Axial[] = [];
+  for (let q = qMin; q <= qMax; q++) {
+    for (let r = rMin; r <= rMax; r++) {
+      const polygon = hexagonPoints(axialToPoint({ q, r }, origin, size), size);
+      if (polygonOverlapsRect(polygon, rect)) {
+        result.push({ q, r });
+      }
+    }
+  }
+  return result;
+};
+
 // A grid as mirrored from map data (image-px coordinates). ColumnWidth is the
 // hex circumradius for type "hex".
 export type GridParams = {

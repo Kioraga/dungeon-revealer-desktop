@@ -4,6 +4,7 @@ import {
   axialRectBetween,
   hexagonPoints,
   snapPointToCellCenter,
+  axialCellsOverlappingRect,
 } from "./hex-grid";
 
 describe("hex-grid", () => {
@@ -76,5 +77,26 @@ describe("hex-grid", () => {
     expect(snapPointToCellCenter([center[0] + 5, center[1] - 3], grid)).toEqual(
       center
     );
+  });
+
+  it("selects cells overlapping the drag rectangle, not the axial parallelogram", () => {
+    // Drag rect (20,20)->(80,80) over a size-40 hex at origin (0,0). The axial
+    // parallelogram between the two opposite corner cells would cover 5+ cells
+    // even far off the rect; only the hexagons actually overlapping the rect
+    // may be selected.
+    const cells = axialCellsOverlappingRect([20, 20], [80, 80], [0, 0], 40);
+    const keys = cells.map((c) => c.q + "," + c.r);
+    expect(keys).toContain("0,0");
+    expect(keys).toContain("0,1");
+    expect(keys).toContain("1,0");
+    expect(cells.length).toBeLessThanOrEqual(5);
+    // A far-away cell of the old axial parallelogram must not appear.
+    expect(keys).not.toContain("2,1");
+  });
+
+  it("keeps the containing cell for a zero-size drag", () => {
+    const point = axialToPoint({ q: 2, r: -1 }, [50, 60], 30);
+    const cells = axialCellsOverlappingRect(point, point, [50, 60], 30);
+    expect(cells).toEqual([{ q: 2, r: -1 }]);
   });
 });

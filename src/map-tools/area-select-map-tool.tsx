@@ -1,6 +1,7 @@
 import * as React from "react";
 import { animated, SpringValue, Interpolation, to } from "@react-spring/three";
 import { useFrame } from "react-three-fiber";
+import * as THREE from "three";
 import { useGesture } from "react-use-gesture";
 import * as io from "io-ts";
 import { pipe, identity } from "fp-ts/lib/function";
@@ -11,11 +12,11 @@ import type { MapTool, SharedMapToolState } from "./map-tool";
 import { BrushToolContext } from "./brush-map-tool";
 import { ConfigureGridMapToolContext } from "./configure-grid-map-tool";
 import {
-  axialRectBetween,
+  axialCellsOverlappingRect,
   axialToPoint,
   hexagonPoints,
-  nearestCell,
 } from "../hex-grid";
+import type { Axial } from "../hex-grid";
 import {
   PersistedStateModel,
   usePersistedState,
@@ -116,60 +117,80 @@ const HexRegionPreview = (props: {
   mapContext: SharedMapToolState;
   color: string;
 }): React.ReactElement => {
-  const ref = React.useRef<null | ThreeLine2>(null);
-
-  const getPoints = React.useCallback<
-    () => Array<[number, number, number]>
-  >(() => {
+  // The pointer springs move outside React's render loop, so only re-render
+  // when the drag rectangle covers a different set of cells.
+  const lastKeyRef = React.useRef("");
+  const [frame, setFrame] = React.useState(0);
+  useFrame(() => {
     const { helper } = props.mapContext;
     const toImage = (p: [number, number, number]): [number, number] =>
       helper.coordinates.canvasToImage(
         helper.coordinates.threeToCanvas([p[0], p[1]])
       );
-    const a = nearestCell(toImage(props.p1.get()), props.origin, props.size);
-    const b = nearestCell(toImage(props.p2.get()), props.origin, props.size);
-    const rect = axialRectBetween(a, b);
-    const width = rect.qMax - rect.qMin + 1;
-    const height = rect.rMax - rect.rMin + 1;
-    if (width * height > 4000) {
-      return [];
-    }
-    const points: Array<[number, number, number]> = [];
-    for (let q = rect.qMin; q <= rect.qMax; q++) {
-      for (let r = rect.rMin; r <= rect.rMax; r++) {
-        const center = axialToPoint({ q, r }, props.origin, props.size);
-        const corners = hexagonPoints(center, props.size).map((corner) =>
-          helper.imageCoordinatesToThreePoint(corner)
-        );
-        for (const corner of corners) {
-          points.push([corner[0], corner[1], 0]);
-        }
-        points.push([corners[0][0], corners[0][1], 0]);
-      }
-    }
-    return points;
-  }, [props.mapContext, props.origin, props.size, props.p1, props.p2]);
-
-  const initialPoints = React.useMemo<Array<[number, number, number]>>(
-    getPoints,
-    // The springs mutate over time; only the identity matters here.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [props.mapContext, props.origin, props.size, props.p1, props.p2]
-  );
-
-  useFrame(() => {
-    if (ref.current) {
-      ref.current.geometry.setPositions(getPoints().flat());
+    const key = axialCellsOverlappingRect(
+      toImage(props.p1.get()),
+      toImage(props.p2.get()),
+      props.origin,
+      props.size
+    )
+      .map((cell) => cell.q + "," + cell.r)
+      .join(";");
+    if (key !== lastKeyRef.current) {
+      lastKeyRef.current = key;
+      setFrame((f) => f + 1);
     }
   });
+  // LineMaterial swallows CSS color strings (renders nothing); feed it a Color.
+  const hexColor = React.useMemo(
+    () => new THREE.Color(props.color),
+    [props.color]
+  );
+
+  // One ThreeLine per hexagon: a single polyline would draw straight
+  // connectors between consecutive rings.
+  const hexagons = React.useMemo(() => {
+    const { helper } = props.mapContext;
+    const toImage = (p: [number, number, number]): [number, number] =>
+      helper.coordinates.canvasToImage(
+        helper.coordinates.threeToCanvas([p[0], p[1]])
+      );
+    const cells = axialCellsOverlappingRect(
+      toImage(props.p1.get()),
+      toImage(props.p2.get()),
+      props.origin,
+      props.size
+    );
+    return cells.map(
+      (
+        cell: Axial
+      ): {
+        key: string;
+        ring: Array<[number, number, number]>;
+      } => {
+        const center = axialToPoint(cell, props.origin, props.size);
+        const corners = hexagonPoints(center, props.size);
+        const ring: Array<[number, number, number]> = [];
+        for (const corner of corners) {
+          const threePoint = helper.imageCoordinatesToThreePoint(corner);
+          ring.push([threePoint[0], threePoint[1], 0]);
+        }
+        const first = helper.imageCoordinatesToThreePoint(corners[0]);
+        ring.push([first[0], first[1], 0]);
+        return {
+          key: cell.q + "," + cell.r,
+          ring,
+        };
+      }
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.mapContext, props.origin, props.size, props.p1, props.p2, frame]);
 
   return (
-    <ThreeLine
-      points={initialPoints}
-      color={props.color}
-      ref={ref}
-      transparent
-    />
+    <>
+      {hexagons.map(({ key, ring }) => (
+        <ThreeLine key={key} points={ring} color={hexColor} transparent />
+      ))}
+    </>
   );
 };
 
@@ -281,20 +302,19 @@ export const AreaSelectMapTool: MapTool = {
       p1: [number, number],
       p2: [number, number]
     ): Array<Array<[number, number]>> => {
-      const a = nearestCell(worldToImagePoint(p1), hexOrigin, hexSize);
-      const b = nearestCell(worldToImagePoint(p2), hexOrigin, hexSize);
-      const { qMin, qMax, rMin, rMax } = axialRectBetween(a, b);
+      const cells = axialCellsOverlappingRect(
+        worldToImagePoint(p1),
+        worldToImagePoint(p2),
+        hexOrigin,
+        hexSize
+      );
       const sizeInCanvas = hexSize * props.mapContext.ratio;
-      const polygons: Array<Array<[number, number]>> = [];
-      for (let q = qMin; q <= qMax; q++) {
-        for (let r = rMin; r <= rMax; r++) {
-          const center = axialToPoint({ q, r }, hexOrigin, hexSize);
-          const canvasCenter =
-            props.mapContext.helper.vector.imageToCanvas(center);
-          polygons.push(hexagonPoints(canvasCenter, sizeInCanvas));
-        }
-      }
-      return polygons;
+      return cells.map(({ q, r }) => {
+        const center = axialToPoint({ q, r }, hexOrigin, hexSize);
+        const canvasCenter =
+          props.mapContext.helper.vector.imageToCanvas(center);
+        return hexagonPoints(canvasCenter, sizeInCanvas);
+      });
     };
 
     const fadeWidth = 0.05;
